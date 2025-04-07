@@ -1,0 +1,10 @@
+rootflag1: "from configuration file"
+rootflag2: "from configuration file"
+rootflag3: "from configuration file"
+#rootflag4: "from configuration file" # we comment this to test if the viper takes the default value
+
+version:
+  versionflag1: "from configuration file"
+  versionflag2: "from configuration file"
+  versionflag3: "from configuration file"
+  #versionflag4: "from configuration file" # we comment this to test if the viper takes the default value

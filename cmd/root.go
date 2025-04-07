@@ -1,0 +1,138 @@
+/*
+Copyright © 2025 NAME HERE <EMAIL ADDRESS>
+*/
+package cmd
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/mitchellh/go-homedir"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+)
+
+var rootFlag1 string
+var rootFlag2 string
+var rootFlag3 string
+var rootFlag4 string
+var cfgFile string
+
+type ViperFlagsRoot struct {
+	CfgFile   string
+	RootFlag1 string `mapstructure:"rootflag1"`
+	RootFlag2 string `mapstructure:"rootflag2"`
+	RootFlag3 string `mapstructure:"rootflag3"`
+	RootFlag4 string `mapstructure:"rootflag4"`
+}
+
+// Initialize the ViperConfig struct with all the root CLI flags bound to Viper env vars
+var vprFlgsRoot ViperFlagsRoot
+
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &cobra.Command{
+	Use:   "cobravsviper",
+	Short: "The ROOT command",
+	Long: `A longer description that spans multiple lines and likely contains
+examples and usage of using your application. For example:
+
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
+	// Uncomment the following line if your bare application
+	// has an action associated with it:
+	Run: func(cmd *cobra.Command, args []string) {
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("Root command called")
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag1: %s", vprFlgsRoot.RootFlag1)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag2: %s", vprFlgsRoot.RootFlag2)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag3: %s", vprFlgsRoot.RootFlag3)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag4: %s", vprFlgsRoot.RootFlag4)
+	},
+}
+
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() {
+	err := rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+func init() {
+	// Ensure initConfig runs before anything else
+	cobra.OnInitialize(initConfig)
+
+	// Here you will define your flags and configuration settings.
+	// Cobra supports persistent flags, which, if defined here,
+	// will be global for your application.
+
+	// Cobra also supports local flags, which will only run
+	// when this action is called directly.
+	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "configs/myconfig.yaml", "Configuration File")
+
+	rootCmd.PersistentFlags().StringVar(&rootFlag1, "rootflag1", "from default", "root flag 1")
+	rootCmd.PersistentFlags().StringVar(&rootFlag2, "rootflag2", "from default", "root flag 2")
+	rootCmd.PersistentFlags().StringVar(&rootFlag3, "rootflag3", "from default", "root flag 3")
+	rootCmd.PersistentFlags().StringVar(&rootFlag4, "rootflag4", "from default", "root flag 4")
+}
+
+func initConfig() {
+	// use a configuration file parsed by viper
+	if rootCmd.Flags().Lookup("config").Changed && cfgFile != "" {
+		logrus.Tracef("Using config file from the flag: %s", cfgFile)
+		viper.SetConfigFile(cfgFile)
+	} else if envVar, ok := os.LookupEnv("COBRAVSVIPER_CONFIG"); ok {
+		logrus.Tracef("Using config file from the environment variable: %s", envVar)
+		viper.SetConfigFile(envVar)
+	} else {
+		logrus.Infof("Using config file from default location")
+		// Find home directory.
+		home, err := homedir.Dir()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		logrus.Infof("Search config in home directory %s with name cobravsviper (without extension).", home)
+		viper.SetConfigName("cobravsviper.conf") // name of config file (viper needs no file extension)
+		viper.AddConfigPath(home)
+		viper.AddConfigPath(filepath.Join(home, ".config/cobravsviper"))
+		logrus.Infof("default config filename %s", rootCmd.Flags().Lookup("config").DefValue)
+	}
+
+	// If a config file is not found, log a trace error. Otherwise, read it in.
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			logrus.Trace("No config file found; continue with cobra default values")
+		} else {
+			// Config file was found but another error occurred
+			fmt.Fprintf(os.Stderr, "Error reading config file: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	// Support ENV variables with prefix with viper bound to cobra
+	// Example: A CLI flag like --some-flag becomes COBRAVSVIPER_SOME_FLAG in environment variables.
+	viper.SetEnvPrefix("COBRAVSVIPER")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_")) // Converts flags to ENV format
+	viper.AutomaticEnv()                                   // Enables automatic binding
+
+	// Ensure all Cobra flags are bound to Viper after initializing them
+	if err := viper.BindPFlags(rootCmd.PersistentFlags()); err != nil {
+		logrus.Errorf("Error binding flags: %v", err)
+		os.Exit(1)
+	}
+
+	// Initialize and Load the ViperConfig that are bound to root Cobra CLI flags
+	if err := viper.Unmarshal(&vprFlgsRoot); err != nil {
+		logrus.Fatalf("Failed to load viper config: %v", err)
+	}
+
+	// Debugging: Show all loaded settings
+	logrus.Tracef("Viper settings: %+v", viper.AllSettings())
+}
