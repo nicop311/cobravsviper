@@ -43,11 +43,13 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			logrus.WithField("cobra-cmd", cmd.Use).Errorf("error binding flags: %v", err)
 			os.Exit(1)
+			return err
 		}
 
 		err = UnmarshalSubMerged(vprBuf, cmd.Parent().Use+"."+cmd.Use, &vprFlgsDetails)
 		if err != nil {
 			logrus.Fatalf("failed to unmarshal version config: %v", err)
+			return err
 		}
 
 		return nil
@@ -67,11 +69,18 @@ to quickly create a Cobra application.`,
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("versionflag4: %s", vprFlgsVersion.VersionFlag4)
 
 		fmt.Println("")
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("persistent flags from subcommand version")
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("versionpersistentflag1: %s", vprFlgsVersion.VersionPersistentFlag1)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("versionpersistentflag2: %s", vprFlgsVersion.VersionPersistentFlag2)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("versionpersistentflag3: %s", vprFlgsVersion.VersionPersistentFlag3)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("versionpersistentflag4: %s", vprFlgsVersion.VersionPersistentFlag4)
+
+		fmt.Println("")
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("Persistent flags from rootCmd")
-		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag1: %s", vprFlgsRoot.RootFlag1)
-		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag2: %s", vprFlgsRoot.RootFlag2)
-		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag3: %s", vprFlgsRoot.RootFlag3)
-		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag4: %s", vprFlgsRoot.RootFlag4)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag1: %s", vprFlgsRoot.RootPersistentFlag1)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag2: %s", vprFlgsRoot.RootPersistentFlag2)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag3: %s", vprFlgsRoot.RootPersistentFlag3)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag4: %s", vprFlgsRoot.RootPersistentFlag4)
 	},
 }
 

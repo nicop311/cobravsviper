@@ -1,0 +1,4 @@
+versionflag1: "value from configuration file"
+versionflag2: "value from configuration file"
+versionflag3: "value from configuration file"
+#versionflag4: "value from configuration file" # we comment this to test if the viper takes the default value
