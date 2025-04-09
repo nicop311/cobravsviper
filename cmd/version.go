@@ -44,28 +44,9 @@ to quickly create a Cobra application.`,
 			os.Exit(1)
 		}
 
-		// If a config file is not found, log a trace error. Otherwise, read it in.
-		if err := vprBuf.ReadInConfig(); err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				logrus.WithField("cobra-cmd", cmd.Use).Infof("No config file found; continue with cobra default values")
-				if err := vprBuf.Unmarshal(&vprFlgsVersion); err != nil {
-					logrus.WithField("cobra-cmd", cmd.Use).WithError(err).Fatal("versionCmd: failed to unmarshal viper config")
-				}
-			} else {
-				// Config file was found but another error occurred
-				fmt.Fprintf(os.Stderr, "Error reading config file: %v\n", err)
-				os.Exit(1)
-			}
-		} else {
-			// Load the config files values that are bound to version Cobra CLI flags
-			if err := vprBuf.Sub("version").Unmarshal(&vprFlgsVersion); err != nil {
-				logrus.WithError(err).Fatal("versionCmd: failed to unmarshal viper config")
-			}
-
-			//
-			if err := vprBuf.Unmarshal(&vprFlgsVersion); err != nil {
-				logrus.WithError(err).Fatal("versionCmd: failed to unmarshal viper config")
-			}
+		err = UnmarshalSubMerged(vprBuf, "version", &vprFlgsVersion)
+		if err != nil {
+			logrus.Fatalf("failed to unmarshal version config: %v", err)
 		}
 
 		return nil
@@ -103,4 +84,15 @@ func init() {
 	versionCmd.Flags().StringVar(&versionFlag2, "versionflag2", "value from default", "version flag 2")
 	versionCmd.Flags().StringVar(&versionFlag3, "versionflag3", "value from default", "version flag 3")
 	versionCmd.Flags().StringVar(&versionFlag4, "versionflag4", "value from default", "version flag 4")
+}
+
+func UnmarshalSubMerged(v *viper.Viper, section string, target any) error {
+	if v == nil {
+		return fmt.Errorf("viper instance is nil")
+	}
+	sub := v.GetStringMap(section)
+	for k, val := range sub {
+		v.Set(k, val) // inject sub keys into main viper
+	}
+	return v.Unmarshal(target)
 }
