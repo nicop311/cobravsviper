@@ -87,12 +87,21 @@ func init() {
 }
 
 func UnmarshalSubMerged(v *viper.Viper, section string, target any) error {
-	if v == nil {
-		return fmt.Errorf("viper instance is nil")
-	}
 	sub := v.GetStringMap(section)
-	for k, val := range sub {
-		v.Set(k, val) // inject sub keys into main viper
+	if len(sub) == 0 {
+		return nil // nothing to do
 	}
+
+	// Convert to mapstructure-compatible format
+	asConfig := map[string]any{}
+	for k, v := range sub {
+		asConfig[k] = v
+	}
+
+	if err := v.MergeConfigMap(asConfig); err != nil {
+		return fmt.Errorf("failed to merge config section '%s': %w", section, err)
+	}
+
+	// Now safely unmarshal with the correct Viper priority (flag > env > config > default)
 	return v.Unmarshal(target)
 }
