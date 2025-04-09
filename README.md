@@ -6,7 +6,23 @@ for flags of a cobra subcommand'.
 This is an issue when unmarshaling `viper.Unmarshal`: each cobra subcommands will ignore configuration files or
 cobra CLI or env var depending on how, when and in what order `viper.Unmarshal` is called.
 
-## How the project was bootstraped
+- [1. How the project was bootstraped](#1-how-the-project-was-bootstraped)
+- [2. Build The Project Locally](#2-build-the-project-locally)
+- [3. CLI User Inputs Priority](#3-cli-user-inputs-priority)
+  - [3.1. The root cobra command help message](#31-the-root-cobra-command-help-message)
+  - [3.2. The `version` cobra subcommand help message](#32-the-version-cobra-subcommand-help-message)
+  - [3.3. Priority In Theory: CLI \> Env Vars \> Config File \> Default](#33-priority-in-theory-cli--env-vars--config-file--default)
+  - [3.4. In Practice:](#34-in-practice)
+    - [3.4.1. Cobra Root Command: CLI Priority Success](#341-cobra-root-command-cli-priority-success)
+    - [3.4.2. Cobra Sub Command: CLI Priority Failure](#342-cobra-sub-command-cli-priority-failure)
+      - [v0.1.0](#v010)
+      - [v0.2.0](#v020)
+    - [3.4.3. Using PersistenFlags from root cobra while running the sub command](#343-using-persistenflags-from-root-cobra-while-running-the-sub-command)
+      - [v0.1.0](#v010-1)
+      - [v0.2.0](#v020-1)
+
+
+## 1. How the project was bootstraped
 
 Init the go workspace:
 
@@ -22,13 +38,13 @@ cobra-cli init
 cobra-cli add version
 ```
 
-## Build The Project Locally
+## 2. Build The Project Locally
 
 ```bash
 go build -o cobravsviper  main.go
 ```
 
-## CLI User Inputs Priority
+## 3. CLI User Inputs Priority
 
 In this project, [Cobra](https://github.com/spf13/cobra) is used to handel the CLI commands, subcommands
 and all their flags.
@@ -39,7 +55,7 @@ allow Viper to automatically use Cobra's flags as both environment variables and
 This allow the developpers to only add and modify cobra flags, and viper will automatically adapt without the need for a
 dedicated viper configuration.
 
-### The root cobra command help message
+### 3.1. The root cobra command help message
 
 ```
 ./cobravsviper -h
@@ -71,7 +87,7 @@ Flags:
 Use "cobravsviper [command] --help" for more information about a command.
 ```
 
-### The `version` cobra subcommand help message
+### 3.2. The `version` cobra subcommand help message
 
 `version` is the name of our first subcommand.
 
@@ -102,7 +118,7 @@ Global Flags:
 ```
 
 
-### Priority In Theory: CLI > Env Vars > Config File > Default
+### 3.3. Priority In Theory: CLI > Env Vars > Config File > Default
 
 | Priority Order & Source  | Example                                                                     | Comment                         |
 |--------------------------|-----------------------------------------------------------------------------|---------------------------------|
@@ -119,9 +135,9 @@ In this example:
 
 This priority works for the root cobra command. But this priority does not work for the version command.
 
-### In Practice: 
+### 3.4. In Practice: 
 
-#### Cobra Root Command: CLI Priority Success
+#### 3.4.1. Cobra Root Command: CLI Priority Success
 
 In this situation, `viper` and `cobra` behave as expected: the priority "CLI > Env Vars > Config File > Default" is repected.
 
@@ -186,9 +202,11 @@ INFO[0000] rootflag4: value from cli                     cobra-cmd=cobravsviper
 
 Or you can test any variation of user input, you will still have priority CLI > Env Vars > Config File > Default, which is nice.
 
-#### Cobra Sub Command: CLI Priority Failure
+#### 3.4.2. Cobra Sub Command: CLI Priority Failure
 
-In this situation, we try the cobra subcommand `version` and set only the flags corresponding to this subcommand.
+##### v0.1.0
+
+In this situation `v0.1.0`, we try the cobra subcommand `version` and set only the flags corresponding to this subcommand.
 Notice `viper` does not handle well the subcommand's flags.
 
 Notice all `versionflag{1,2,3}` are set to configuration file, `versionflag4` is empty because the value is commente in the config file.
@@ -222,8 +240,32 @@ should have taken the value `from configuration file`.
 
 `versionflag4` is expected to be `from default`, but this is pure coincidence.
 
+##### v0.2.0
 
-#### Using PersistenFlags from root cobra while running the sub command
+With tag v0.2.0, we modify `cmd/version.go` to first unmarshall from config file (`viper.Sub("version").Unmarshal(&vprFlgsVersion)`), and then unmarshal from cobra autobindenv (`viper.Unmarshal(&vprFlgsVersion)`).
+Notice the `versionflag3` does not get values from configuration file, since the second unmarshal (without `Sub`) overrides the first unmarshal (the one with `.Sub`).
+
+
+```bash
+COBRAVSVIPER_VERSIONFLAG2="value from envvars" ./cobravsviper version --versionflag1="value from cli" --config configs/cobravsviper.conf.yaml
+```
+```log
+INFO[0000] version subcommand called                     cobra-cmd=version
+INFO[0000] versionflag1: value from cli                  cobra-cmd=version
+INFO[0000] versionflag2: value from envvars              cobra-cmd=version
+INFO[0000] versionflag3: value from default              cobra-cmd=version
+INFO[0000] versionflag4: value from default              cobra-cmd=version
+
+INFO[0000] Persistent flags from rootCmd                 cobra-cmd=version
+INFO[0000] rootflag1: value from configuration file      cobra-cmd=version
+INFO[0000] rootflag2: value from configuration file      cobra-cmd=version
+INFO[0000] rootflag3: value from configuration file      cobra-cmd=version
+INFO[0000] rootflag4: value from default                 cobra-cmd=version
+```
+
+#### 3.4.3. Using PersistenFlags from root cobra while running the sub command
+
+##### v0.1.0
 
 In this situation, we try the cobra subcommand `version` with its 4 parameters set like previously.
 And we also set the values of the _Persistent flags from rootCmd_.
@@ -271,3 +313,29 @@ INFO[0000] rootflag4: value from default                 cobra-cmd=version
 ```
 
 This problem comes from `viper.Sub("version").Unmarshal(&vprFlgsVersion)` that do not keep the priority order.
+
+##### v0.2.0
+
+With tag v0.2.0, we modify `cmd/version.go` to first unmarshall from config file (`viper.Sub("version").Unmarshal(&vprFlgsVersion)`), and then unmarshal from cobra autobindenv (`viper.Unmarshal(&vprFlgsVersion)`).
+Notice the `versionflag3` does not get values from configuration file, since the second unmarshal (without `Sub`) overrides the first unmarshal (the one with `.Sub`).
+
+But root flags are fine.
+
+```bash
+COBRAVSVIPER_ROOTFLAG2="value from envvars"  COBRAVSVIPER_VERSIONFLAG2="value from envvars" ./cobravsviper --rootflag1="value from cli"  version --versionflag1="value from cli" --config configs/cobravsviper.conf.yaml
+```
+
+```
+COBRAVSVIPER_ROOTFLAG2="value from envvars"  COBRAVSVIPER_VERSIONFLAG2="value from envvars" ./cobravsviper --rootflag1="value from cli"  version --versionflag1="value from cli" --config configs/cobravsviper.conf.yaml
+INFO[0000] version subcommand called                     cobra-cmd=version
+INFO[0000] versionflag1: value from cli                  cobra-cmd=version
+INFO[0000] versionflag2: value from envvars              cobra-cmd=version
+INFO[0000] versionflag3: value from default              cobra-cmd=version
+INFO[0000] versionflag4: value from default              cobra-cmd=version
+
+INFO[0000] Persistent flags from rootCmd                 cobra-cmd=version
+INFO[0000] rootflag1: value from cli                     cobra-cmd=version
+INFO[0000] rootflag2: value from envvars                 cobra-cmd=version
+INFO[0000] rootflag3: value from configuration file      cobra-cmd=version
+INFO[0000] rootflag4: value from default                 cobra-cmd=version
+```
