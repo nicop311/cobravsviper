@@ -45,6 +45,7 @@ to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("")
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("Root command called")
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag1: %s", vprFlgsRoot.RootFlag1)
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag2: %s", vprFlgsRoot.RootFlag2)
@@ -73,24 +74,24 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "configs/myconfig.yaml", "Configuration File")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Configuration File")
 
-	rootCmd.PersistentFlags().StringVar(&rootFlag1, "rootflag1", "from default", "root flag 1")
-	rootCmd.PersistentFlags().StringVar(&rootFlag2, "rootflag2", "from default", "root flag 2")
-	rootCmd.PersistentFlags().StringVar(&rootFlag3, "rootflag3", "from default", "root flag 3")
-	rootCmd.PersistentFlags().StringVar(&rootFlag4, "rootflag4", "from default", "root flag 4")
+	rootCmd.PersistentFlags().StringVar(&rootFlag1, "rootflag1", "value from default", "root flag 1")
+	rootCmd.PersistentFlags().StringVar(&rootFlag2, "rootflag2", "value from default", "root flag 2")
+	rootCmd.PersistentFlags().StringVar(&rootFlag3, "rootflag3", "value from default", "root flag 3")
+	rootCmd.PersistentFlags().StringVar(&rootFlag4, "rootflag4", "value from default", "root flag 4")
 }
 
 func initConfig() {
 	// use a configuration file parsed by viper
 	if rootCmd.Flags().Lookup("config").Changed && cfgFile != "" {
-		logrus.Tracef("Using config file from the flag: %s", cfgFile)
+		logrus.Tracef("Case config file from the flag: %s", cfgFile)
 		viper.SetConfigFile(cfgFile)
 	} else if envVar, ok := os.LookupEnv("COBRAVSVIPER_CONFIG"); ok {
-		logrus.Tracef("Using config file from the environment variable: %s", envVar)
+		logrus.Tracef("Case config file from the environment variable: %s", envVar)
 		viper.SetConfigFile(envVar)
 	} else {
-		logrus.Infof("Using config file from default location")
+		logrus.Infof("Case config file from default location")
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
@@ -98,11 +99,13 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		logrus.Infof("Search config in home directory %s with name cobravsviper (without extension).", home)
 		viper.SetConfigName("cobravsviper.conf") // name of config file (viper needs no file extension)
+		// TODO: consider using the rootCmd.Flags().Lookup("config").DefValue for viper.SetConfigName
+		// logrus.Infof("default config filename %s", rootCmd.Flags().Lookup("config").DefValue)
+		logrus.Infof("Search config in .config directory %s with name cobravsviper.conf.yaml (without extension).", home)
 		viper.AddConfigPath(home)
+		logrus.Infof("Search config in home directory %s with name cobravsviper.conf.yaml (without extension).", filepath.Join(home, ".config/cobravsviper"))
 		viper.AddConfigPath(filepath.Join(home, ".config/cobravsviper"))
-		logrus.Infof("default config filename %s", rootCmd.Flags().Lookup("config").DefValue)
 	}
 
 	// If a config file is not found, log a trace error. Otherwise, read it in.

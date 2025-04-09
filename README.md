@@ -62,10 +62,10 @@ Available Commands:
 Flags:
       --config string      Configuration File (default "configs/myconfig.yaml")
   -h, --help               help for cobravsviper
-      --rootflag1 string   root flag 1 (default "from default")
-      --rootflag2 string   root flag 2 (default "from default")
-      --rootflag3 string   root flag 3 (default "from default")
-      --rootflag4 string   root flag 4 (default "from default")
+      --rootflag1 string   root flag 1 (default "value from default")
+      --rootflag2 string   root flag 2 (default "value from default")
+      --rootflag3 string   root flag 3 (default "value from default")
+      --rootflag4 string   root flag 4 (default "value from default")
   -t, --toggle             Help message for toggle
 
 Use "cobravsviper [command] --help" for more information about a command.
@@ -88,17 +88,17 @@ Usage:
 
 Flags:
   -h, --help                  help for version
-      --versionflag1 string   version flag 1 (default "fromdefault")
-      --versionflag2 string   version flag 2 (default "fromdefault")
-      --versionflag3 string   version flag 3 (default "fromdefault")
-      --versionflag4 string   version flag 4 (default "fromdefault")
+      --versionflag1 string   version flag 1 (default "value from default")
+      --versionflag2 string   version flag 2 (default "value from default")
+      --versionflag3 string   version flag 3 (default "value from default")
+      --versionflag4 string   version flag 4 (default "value from default")
 
 Global Flags:
       --config string      Configuration File (default "configs/myconfig.yaml")
-      --rootflag1 string   root flag 1 (default "from default")
-      --rootflag2 string   root flag 2 (default "from default")
-      --rootflag3 string   root flag 3 (default "from default")
-      --rootflag4 string   root flag 4 (default "from default")
+      --rootflag1 string   root flag 1 (default "value from default")
+      --rootflag2 string   root flag 2 (default "value from default")
+      --rootflag3 string   root flag 3 (default "value from default")
+      --rootflag4 string   root flag 4 (default "value from default")
 ```
 
 
@@ -106,10 +106,10 @@ Global Flags:
 
 | Priority Order & Source  | Example                                                                     | Comment                         |
 |--------------------------|-----------------------------------------------------------------------------|---------------------------------|
-| 1️⃣ CLI Flag             | `--rootflag1 debug`                                                         | Highest priority                |
-| 2️⃣ Environment Variable | `COBRAVSVIPER_ROOTFLAG2=from envvars`                                       | Overrides config file & default |
-| 3️⃣ Config File          | `rootflag3: "from config file"` in YAML/TOML/JSON                                         | Overrides default               |
-| 4️⃣ Default Value        | `Flags().StringVar(&rootFlag4, "rootflag4", "from default", "root flag 4")` | Used if nothing else is set     |
+| 1️⃣ CLI Flag             | `--rootflag1 "value from cli"`                                                         | Highest priority                |
+| 2️⃣ Environment Variable | `COBRAVSVIPER_ROOTFLAG2="value from envvars"`                                       | Overrides config file & default |
+| 3️⃣ Config File          | `rootflag3: "value from config file"` in YAML/TOML/JSON                                         | Overrides default               |
+| 4️⃣ Default Value        | `Flags().StringVar(&rootFlag4, "rootflag4", "value from default", "root flag 4")` | Used if nothing else is set     |
 
 In this example:
 * we choose the first root flag `--rootflag1` as the one to illustrate CLI flag user input, but this is arbitrary ; we could choose any of the 4 flags `--rootflagX`.
@@ -125,22 +125,73 @@ This priority works for the root cobra command. But this priority does not work 
 
 In this situation, `viper` and `cobra` behave as expected: the priority "CLI > Env Vars > Config File > Default" is repected.
 
+> Note: in the config file, `rootflag4` is commented, which means the value is not set in the config file.
+> This is to illustrate fallback to default if no user input is set for a flag.
+
 ```bash
-COBRAVSVIPER_ROOTFLAG2="from envvars" ./cobravsviper --rootflag1="from cli" --config configs/cobravsviper.conf.yaml
+COBRAVSVIPER_ROOTFLAG2="value from envvars" ./cobravsviper --rootflag1="value from cli" --config configs/cobravsviper.conf.yaml
 ```
 
 ```log
 INFO[0000] Root command called                           cobra-cmd=cobravsviper
-INFO[0000] rootflag1: from cli                           cobra-cmd=cobravsviper
-INFO[0000] rootflag2: from envvars                       cobra-cmd=cobravsviper
-INFO[0000] rootflag3: from configuration file            cobra-cmd=cobravsviper
-INFO[0000] rootflag4: from default                       cobra-cmd=cobravsviper
+INFO[0000] rootflag1: value from cli                     cobra-cmd=cobravsviper
+INFO[0000] rootflag2: value from envvars                 cobra-cmd=cobravsviper
+INFO[0000] rootflag3: value from configuration file      cobra-cmd=cobravsviper
+INFO[0000] rootflag4: value from default                 cobra-cmd=cobravsviper
 ```
+
+Or run this without any arguments:output is taken from cobra default values.
+
+```
+./cobravsviper
+```
+
+```log
+INFO[0000] Case config file from default location       
+INFO[0000] Search config in .config directory /home/thedetective with name cobravsviper.conf.yaml (without extension). 
+INFO[0000] Search config in home directory /home/thedetective/.config/cobravsviper with name cobravsviper.conf.yaml (without extension). 
+
+INFO[0000] Root command called                           cobra-cmd=cobravsviper
+INFO[0000] rootflag1: value from default                 cobra-cmd=cobravsviper
+INFO[0000] rootflag2: value from default                 cobra-cmd=cobravsviper
+INFO[0000] rootflag3: value from default                 cobra-cmd=cobravsviper
+INFO[0000] rootflag4: value from default                 cobra-cmd=cobravsviper
+```
+
+Or witness the priority of cli flags over env var: `--rootflag4` overrides `COBRAVSVIPER_ROOTFLAG4`.
+
+```bash
+COBRAVSVIPER_ROOTFLAG4="value from envvar" ./cobravsviper --rootflag3 "value from cli"  --config configs/cobravsviper.conf.yaml
+```
+
+```log
+INFO[0000] Root command called                           cobra-cmd=cobravsviper
+INFO[0000] rootflag1: value from configuration file      cobra-cmd=cobravsviper
+INFO[0000] rootflag2: value from configuration file      cobra-cmd=cobravsviper
+INFO[0000] rootflag3: value from cli                     cobra-cmd=cobravsviper
+INFO[0000] rootflag4: value from envvar                  cobra-cmd=cobravsviper
+```
+
+```bash
+COBRAVSVIPER_ROOTFLAG4="value from envvar" ./cobravsviper --rootflag3 "value from cli" --rootflag4 "value from cli" --config configs/cobravsviper.conf.yaml 
+```
+
+```log
+INFO[0000] Root command called                           cobra-cmd=cobravsviper
+INFO[0000] rootflag1: value from configuration file      cobra-cmd=cobravsviper
+INFO[0000] rootflag2: value from configuration file      cobra-cmd=cobravsviper
+INFO[0000] rootflag3: value from cli                     cobra-cmd=cobravsviper
+INFO[0000] rootflag4: value from cli                     cobra-cmd=cobravsviper
+```
+
+Or you can test any variation of user input, you will still have priority CLI > Env Vars > Config File > Default, which is nice.
 
 #### Cobra Sub Command: CLI Priority Failure
 
 In this situation, we try the cobra subcommand `version` and set only the flags corresponding to this subcommand.
 Notice `viper` does not handle well the subcommand's flags.
+
+Notice all `versionflag{1,2,3}` are set to configuration file, `versionflag4` is empty because the value is commente in the config file.
 
 Ignore the output of the _Persistent flags from rootCmd_ for now: this output is perfectly normal, 
 since the priority would be to use the values from the config file for `rootflag{1, 2, 3}` because
@@ -148,21 +199,21 @@ no other input was specified for these parameters. `rootflag4` is commented in t
 and no other input was specified for this parameter, so it takes the default value.
 
 ```bash
-COBRAVSVIPER_VERSIONFLAG2="from envvars" ./cobravsviper version --versionflag1="from cli" --config configs/cobravsviper.conf.yaml
+COBRAVSVIPER_VERSIONFLAG2="value from envvars" ./cobravsviper version --versionflag1="value from cli" --config configs/cobravsviper.conf.yaml
 ```
 
 ```log
-INFO[0000] version called                                cobra-cmd=version
-INFO[0000] versionflag1: from cli                        cobra-cmd=version
-INFO[0000] versionflag2: from envvars                    cobra-cmd=version
-INFO[0000] versionflag3: from default                    cobra-cmd=version
-INFO[0000] versionflag4: from default                    cobra-cmd=version
+INFO[0000] version subcommand called                     cobra-cmd=version
+INFO[0000] versionflag1: value from configuration file   cobra-cmd=version
+INFO[0000] versionflag2: value from configuration file   cobra-cmd=version
+INFO[0000] versionflag3: value from configuration file   cobra-cmd=version
+INFO[0000] versionflag4:                                 cobra-cmd=version
 
 INFO[0000] Persistent flags from rootCmd                 cobra-cmd=version
-INFO[0000] rootflag1: from cli                           cobra-cmd=version
-INFO[0000] rootflag2: from envvars                       cobra-cmd=version
-INFO[0000] rootflag3: from configuration file            cobra-cmd=version
-INFO[0000] rootflag4: from default                       cobra-cmd=version
+INFO[0000] rootflag1: value from configuration file      cobra-cmd=version
+INFO[0000] rootflag2: value from configuration file      cobra-cmd=version
+INFO[0000] rootflag3: value from configuration file      cobra-cmd=version
+INFO[0000] rootflag4: value from default                 cobra-cmd=version
 ```
 
 Notice `versionflag3` has the value `from default` which comes from viper using cobra's default
@@ -181,39 +232,42 @@ Notice `versionflag{1, 2, 3, 4}` are still wrong whereas `rootflag{1, 2, 3, 4}`
 follow the right priority order.
 
 ```bash
-COBRAVSVIPER_ROOTFLAG2="from envvars"  COBRAVSVIPER_VERSIONFLAG2="from envvars" ./cobravsviper --rootflag1="from cli"  version --versionflag1="from cli" --config configs/cobravsviper.conf.yaml
+COBRAVSVIPER_ROOTFLAG2="value from envvars"  COBRAVSVIPER_VERSIONFLAG2="value from envvars" ./cobravsviper --rootflag1="value from cli"  version --versionflag1="value from cli" --config configs/cobravsviper.conf.yaml
 ```
 
 ```log
-INFO[0000] version called                                cobra-cmd=version
-INFO[0000] versionflag1: from configuration file         cobra-cmd=version
-INFO[0000] versionflag2: from configuration file         cobra-cmd=version
-INFO[0000] versionflag3: from configuration file         cobra-cmd=version
+INFO[0000] version subcommand called                     cobra-cmd=version
+INFO[0000] versionflag1: value from configuration file   cobra-cmd=version
+INFO[0000] versionflag2: value from configuration file   cobra-cmd=version
+INFO[0000] versionflag3: value from configuration file   cobra-cmd=version
 INFO[0000] versionflag4:                                 cobra-cmd=version
 
 INFO[0000] Persistent flags from rootCmd                 cobra-cmd=version
-INFO[0000] rootflag1: from cli                           cobra-cmd=version
-INFO[0000] rootflag2: from envvars                       cobra-cmd=version
-INFO[0000] rootflag3: from configuration file            cobra-cmd=version
-INFO[0000] rootflag4: from default                       cobra-cmd=version
+INFO[0000] rootflag1: value from cli                     cobra-cmd=version
+INFO[0000] rootflag2: value from envvars                 cobra-cmd=version
+INFO[0000] rootflag3: value from configuration file      cobra-cmd=version
+INFO[0000] rootflag4: value from default                 cobra-cmd=version
 ```
 
 We can even play with the `rootflagX` by changing which is defined through the CLI, etc...
-The priority order still works for Root CMD persistent flags.
+The priority order still works for Root CMD persistent flags. But the subcommand does not use values from 
+config file, since the
 
 ```bash
-COBRAVSVIPER_ROOTFLAG3="from envvars"  COBRAVSVIPER_VERSIONFLAG2="from envvars" ./cobravsviper --rootflag2="from cli"  version --versionflag1="from cli" --config configs/cobravsviper.conf.yaml
+COBRAVSVIPER_ROOTFLAG3="value from envvars"  COBRAVSVIPER_VERSIONFLAG3="value from envvars" ./cobravsviper --rootflag2="value from cli"  version --versionflag3="value from cli" --config configs/cobravsviper.conf.yaml
 ```
 ```log
-INFO[0000] version called                                cobra-cmd=version
-INFO[0000] versionflag1: from configuration file         cobra-cmd=version
-INFO[0000] versionflag2: from configuration file         cobra-cmd=version
-INFO[0000] versionflag3: from configuration file         cobra-cmd=version
+INFO[0000] version subcommand called                     cobra-cmd=version
+INFO[0000] versionflag1: value from configuration file   cobra-cmd=version
+INFO[0000] versionflag2: value from configuration file   cobra-cmd=version
+INFO[0000] versionflag3: value from configuration file   cobra-cmd=version
 INFO[0000] versionflag4:                                 cobra-cmd=version
 
 INFO[0000] Persistent flags from rootCmd                 cobra-cmd=version
-INFO[0000] rootflag1: from configuration file            cobra-cmd=version
-INFO[0000] rootflag2: from cli                           cobra-cmd=version
-INFO[0000] rootflag3: from envvars                       cobra-cmd=version
-INFO[0000] rootflag4: from default                       cobra-cmd=version
+INFO[0000] rootflag1: value from configuration file      cobra-cmd=version
+INFO[0000] rootflag2: value from cli                     cobra-cmd=version
+INFO[0000] rootflag3: value from envvars                 cobra-cmd=version
+INFO[0000] rootflag4: value from default                 cobra-cmd=version
 ```
+
+This problem comes from `viper.Sub("version").Unmarshal(&vprFlgsVersion)` that do not keep the priority order.
