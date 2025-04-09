@@ -87,21 +87,24 @@ func init() {
 }
 
 func UnmarshalSubMerged(v *viper.Viper, section string, target any) error {
+	// 1. Skip if no config file is loaded at all
+	if v.ConfigFileUsed() == "" {
+		return v.Unmarshal(target) // only env, flags, defaults
+	}
+
+	// 2. Extract the subsection of the config file
 	sub := v.GetStringMap(section)
 	if len(sub) == 0 {
-		return nil // nothing to do
+		// No subsection found, fallback to flags/env/default
+		return v.Unmarshal(target)
 	}
 
-	// Convert to mapstructure-compatible format
-	asConfig := map[string]any{}
-	for k, v := range sub {
-		asConfig[k] = v
-	}
-
-	if err := v.MergeConfigMap(asConfig); err != nil {
+	// 3. Merge section into Viper's config layer (not override!)
+	if err := v.MergeConfigMap(sub); err != nil {
 		return fmt.Errorf("failed to merge config section '%s': %w", section, err)
 	}
 
-	// Now safely unmarshal with the correct Viper priority (flag > env > config > default)
+	// 4. Now unmarshal with proper priority:
+	// flags > env > merged config > defaults
 	return v.Unmarshal(target)
 }
