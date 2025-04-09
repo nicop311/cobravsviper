@@ -19,14 +19,23 @@ var rootFlag1 string
 var rootFlag2 string
 var rootFlag3 string
 var rootFlag4 string
+
+var rootPersistentFlag1 string
+var rootPersistentFlag2 string
+var rootPersistentFlag3 string
+var rootPersistentFlag4 string
 var cfgFile string
 
 type ViperFlagsRoot struct {
-	CfgFile   string
-	RootFlag1 string `mapstructure:"rootflag1"`
-	RootFlag2 string `mapstructure:"rootflag2"`
-	RootFlag3 string `mapstructure:"rootflag3"`
-	RootFlag4 string `mapstructure:"rootflag4"`
+	CfgFile             string
+	RootFlag1           string `mapstructure:"rootflag1"`
+	RootFlag2           string `mapstructure:"rootflag2"`
+	RootFlag3           string `mapstructure:"rootflag3"`
+	RootFlag4           string `mapstructure:"rootflag4"`
+	RootPersistentFlag1 string `mapstructure:"rootpersistentflag1"`
+	RootPersistentFlag2 string `mapstructure:"rootpersistentflag2"`
+	RootPersistentFlag3 string `mapstructure:"rootpersistentflag3"`
+	RootPersistentFlag4 string `mapstructure:"rootpersistentflag4"`
 }
 
 // Initialize the ViperConfig struct with all the root CLI flags bound to Viper env vars
@@ -47,10 +56,16 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("")
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("Root command called")
+
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag1: %s", vprFlgsRoot.RootFlag1)
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag2: %s", vprFlgsRoot.RootFlag2)
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag3: %s", vprFlgsRoot.RootFlag3)
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootflag4: %s", vprFlgsRoot.RootFlag4)
+
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag1: %s", vprFlgsRoot.RootPersistentFlag1)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag2: %s", vprFlgsRoot.RootPersistentFlag2)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag3: %s", vprFlgsRoot.RootPersistentFlag3)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag4: %s", vprFlgsRoot.RootPersistentFlag4)
 	},
 }
 
@@ -76,10 +91,15 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Configuration File")
 
-	rootCmd.PersistentFlags().StringVar(&rootFlag1, "rootflag1", "value from default", "root flag 1")
-	rootCmd.PersistentFlags().StringVar(&rootFlag2, "rootflag2", "value from default", "root flag 2")
-	rootCmd.PersistentFlags().StringVar(&rootFlag3, "rootflag3", "value from default", "root flag 3")
-	rootCmd.PersistentFlags().StringVar(&rootFlag4, "rootflag4", "value from default", "root flag 4")
+	rootCmd.PersistentFlags().StringVar(&rootPersistentFlag1, "rootpersistentflag1", "value from default", "persistent root flag 1")
+	rootCmd.PersistentFlags().StringVar(&rootPersistentFlag2, "rootpersistentflag2", "value from default", "persistent root flag 2")
+	rootCmd.PersistentFlags().StringVar(&rootPersistentFlag3, "rootpersistentflag3", "value from default", "persistent root flag 3")
+	rootCmd.PersistentFlags().StringVar(&rootPersistentFlag4, "rootpersistentflag4", "value from default", "persistent root flag 4")
+
+	rootCmd.Flags().StringVar(&rootFlag1, "rootflag1", "value from default", "root flag 1")
+	rootCmd.Flags().StringVar(&rootFlag2, "rootflag2", "value from default", "root flag 2")
+	rootCmd.Flags().StringVar(&rootFlag3, "rootflag3", "value from default", "root flag 3")
+	rootCmd.Flags().StringVar(&rootFlag4, "rootflag4", "value from default", "root flag 4")
 }
 
 func initConfig() {
