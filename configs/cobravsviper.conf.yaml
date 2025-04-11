@@ -1,27 +1,27 @@
-rootflag1: "value from configuration file"
-rootflag2: "value from configuration file"
-rootflag3: "value from configuration file"
-#rootflag4: "value from configuration file" # we comment this to test if the viper takes the default value
+rootflag1: "value from configuration file root 1"
+rootflag2: "value from configuration file root 2"
+rootflag3: "value from configuration file root 3"
+#rootflag4: "value from configuration file root 4" # we comment this to test if the viper takes the default value
 
-rootpersistentflag1: "value from configuration file"
-rootpersistentflag2: "value from configuration file"
-rootpersistentflag3: "value from configuration file"
-#rootpersistentflag4: "value from configuration file" # we comment this to test if the viper takes the default value
+rootpersistentflag1: "value from configuration file root 1"
+rootpersistentflag2: "value from configuration file root 2"
+rootpersistentflag3: "value from configuration file root 3"
+#rootpersistentflag4: "value from configuration file root 4" # we comment this to test if the viper takes the default value
 
 # subcommand level 1
 version:
-  versionflag1: "value from configuration file"
-  versionflag2: "value from configuration file"
-  versionflag3: "value from configuration file"
-  #versionflag4: "value from configuration file" # we comment this to test if the viper takes the default value
-  versionpersistentflag1: "value from configuration file"
-  versionpersistentflag2: "value from configuration file"
-  versionpersistentflag3: "value from configuration file"
-  #versionpersistentflag4: "value from configuration file" # we comment this to test if the viper takes the default value
+  versionflag1: "value from configuration file version 1"
+  versionflag2: "value from configuration file version 2"
+  versionflag3: "value from configuration file version 3"
+  #versionflag4: "value from configuration file version 4" # we comment this to test if the viper takes the default value
+  versionpersistentflag1: "value from configuration file version 1"
+  versionpersistentflag2: "value from configuration file version 2"
+  versionpersistentflag3: "value from configuration file version 3"
+  #versionpersistentflag4: "value from configuration file version 4" # we comment this to test if the viper takes the default value
   
   # subcommand level 2
   details:
-    detailsflag1: "value from configuration file"
-    detailsflag2: "value from configuration file"
-    detailsflag3: "value from configuration file"
-    #detailsflag4: "value from configuration file" # we comment this to test if the viper takes the default value
+    detailsflag1: "value from configuration file details 1"
+    detailsflag2: "value from configuration file details 2"
+    detailsflag3: "value from configuration file details 3"
+    #detailsflag4: "value from configuration file details 4" # we comment this to test if the viper takes the default value

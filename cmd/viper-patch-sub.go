@@ -25,6 +25,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -97,12 +98,12 @@ func InitViper(v *viper.Viper, cobraCmd *cobra.Command, target any) {
 
 	// the name of the cobra subcommand is the "section" of the config file
 	// in this situation we suppose the cobra command correspond to a first level command. But if it is a second or third or greater level subcommand, we need the section to represent all the parent name. How can we get the fulle path to root command ?
-	// var path []string
-	// for cmd := cobraCmd; cmd != nil && cmd.HasParent(); cmd = cmd.Parent() {
-	// 	path = append([]string{cmd.Name()}, path...)
-	// }
-	// section := strings.Join(path, ".")
-	section := cobraCmd.DisplayName()
+	var path []string
+	for cmd := cobraCmd; cmd != nil && cmd.HasParent(); cmd = cmd.Parent() {
+		path = append([]string{cmd.Name()}, path...)
+	}
+	section := strings.Join(path, ".")
+	//section := cobraCmd.DisplayName()
 	logrus.WithField("cobra-cmd", cobraCmd.Use).Infof("section: %s", section)
 
 	err = UnmarshalSubMerged(v, section, &target)
