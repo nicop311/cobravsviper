@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -47,6 +46,9 @@ to quickly create a Cobra application.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		return nil
 	},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		InitViper(viper.GetViper(), cmd, &vprFlgsVersion)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("version subcommand called")
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("versionflag1: %s", vprFlgsVersion.VersionFlag1)
@@ -69,7 +71,10 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	cobra.OnInitialize(initConfigVersion)
+	// Ensure InitViper runs before anything else
+	cobra.OnInitialize(func() {
+		InitViper(viper.GetViper(), versionCmd, &vprFlgsVersion)
+	})
 	rootCmd.AddCommand(versionCmd)
 
 	// Here you will define your flags and configuration settings.
@@ -90,42 +95,4 @@ func init() {
 	versionCmd.Flags().StringVar(&versionFlag2, "versionflag2", "value from default", "version flag 2")
 	versionCmd.Flags().StringVar(&versionFlag3, "versionflag3", "value from default", "version flag 3")
 	versionCmd.Flags().StringVar(&versionFlag4, "versionflag4", "value from default", "version flag 4")
-}
-
-func UnmarshalSubMerged(v *viper.Viper, section string, target any) error {
-	// 1. Skip if no config file is loaded at all
-	if v.ConfigFileUsed() == "" {
-		return v.Unmarshal(target) // only env, flags, defaults
-	}
-
-	// 2. Extract the subsection of the config file
-	sub := v.GetStringMap(section)
-	if len(sub) == 0 {
-		// No subsection found, fallback to flags/env/default
-		return v.Unmarshal(target)
-	}
-
-	// 3. Merge section into Viper's config layer (not override!)
-	if err := v.MergeConfigMap(sub); err != nil {
-		return fmt.Errorf("failed to merge config section '%s': %w", section, err)
-	}
-
-	// 4. Now unmarshal with proper priority:
-	// flags > env > merged config > defaults
-	return v.Unmarshal(target)
-}
-
-func initConfigVersion() {
-	vprBuf := viper.GetViper()
-	// Bind subcommand-specific cobra flags to viper
-	err := vprBuf.BindPFlags(versionCmd.Flags())
-	if err != nil {
-		logrus.WithField("cobra-cmd", versionCmd.Use).Errorf("error binding flags: %v", err)
-		os.Exit(1)
-	}
-
-	err = UnmarshalSubMerged(vprBuf, versionCmd.Use, &vprFlgsVersion)
-	if err != nil {
-		logrus.Fatalf("failed to unmarshal version config: %v", err)
-	}
 }

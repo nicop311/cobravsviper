@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -36,23 +35,8 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		vprBuf := viper.GetViper()
-		// Bind subcommand-specific cobra flags to viper
-		err := vprBuf.BindPFlags(cmd.Flags())
-		if err != nil {
-			logrus.WithField("cobra-cmd", cmd.Use).Errorf("error binding flags: %v", err)
-			os.Exit(1)
-			return err
-		}
-
-		err = UnmarshalSubMerged(vprBuf, cmd.Parent().Use+"."+cmd.Use, &vprFlgsDetails)
-		if err != nil {
-			logrus.Fatalf("failed to unmarshal version config: %v", err)
-			return err
-		}
-
-		return nil
+	PreRun: func(cmd *cobra.Command, args []string) {
+		InitViper(viper.GetViper(), cmd, &vprFlgsDetails)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("details called")
