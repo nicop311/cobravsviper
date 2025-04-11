@@ -81,6 +81,19 @@ func Execute() {
 func init() {
 	// Ensure initConfig runs before anything else
 	cobra.OnInitialize(initConfig)
+	// Define command groups
+	group1 := &cobra.Group{
+		ID:    "group1",
+		Title: "Group 1 Commands:",
+	}
+	group2 := &cobra.Group{
+		ID:    "group2",
+		Title: "Group 2 Commands:",
+	}
+
+	// Add groups to the root command
+	rootCmd.AddGroup(group1)
+	rootCmd.AddGroup(group2)
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
@@ -146,10 +159,12 @@ func initConfig() {
 	viper.AutomaticEnv()                                   // Enables automatic binding
 
 	// Ensure all Cobra flags are bound to Viper after initializing them
-	if err := viper.BindPFlags(rootCmd.PersistentFlags()); err != nil {
+	if err := viper.BindPFlags(rootCmd.Flags()); err != nil {
 		logrus.Errorf("Error binding flags: %v", err)
 		os.Exit(1)
 	}
+	vprBuf := viper.GetViper()
+	logrus.Tracef("vprBuf := viper.GetViper(): %+v", vprBuf)
 
 	// Initialize and Load the ViperConfig that are bound to root Cobra CLI flags
 	if err := viper.Unmarshal(&vprFlgsRoot); err != nil {
@@ -158,4 +173,5 @@ func initConfig() {
 
 	// Debugging: Show all loaded settings
 	logrus.Tracef("Viper settings: %+v", viper.AllSettings())
+
 }
