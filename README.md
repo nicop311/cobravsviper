@@ -44,6 +44,12 @@ cobra-cli add version
 go build -o cobravsviper  main.go
 ```
 
+With debug:
+
+```bash
+go build -gcflags="all=-N -l" -o cobravsviper  main.go
+```
+
 ## 3. CLI User Inputs Priority
 
 In this project, [Cobra](https://github.com/spf13/cobra) is used to handel the CLI commands, subcommands
