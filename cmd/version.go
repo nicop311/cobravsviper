@@ -44,7 +44,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		InitViper(viper.GetViper(), cmd, &vprFlgsVersion)
+		InitViperSubCmd(viper.GetViper(), cmd, &vprFlgsVersion)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("version subcommand called")
@@ -68,10 +68,6 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	// Ensure InitViper runs before anything else
-	cobra.OnInitialize(func() {
-		InitViper(viper.GetViper(), versionCmd, &vprFlgsVersion)
-	})
 	rootCmd.AddCommand(versionCmd)
 
 	// Here you will define your flags and configuration settings.
