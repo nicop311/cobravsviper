@@ -11,8 +11,8 @@ import (
 
 // grp1cmd2Cmd represents the grp1cmd2 command
 var grp1cmd2Cmd = &cobra.Command{
-	Use:     "grp1cmd2",
-	Short:   "A brief description of your command",
+	Use:   "grp1cmd2",
+	Short: "A brief description of your command",
 	GroupID: "group1",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:

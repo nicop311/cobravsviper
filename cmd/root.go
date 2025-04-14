@@ -4,15 +4,21 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+var (
+	debug     bool
+	logFormat string
+	logLevel  string
 )
 
 var rootFlag1 string
@@ -36,6 +42,10 @@ type ViperFlagsRoot struct {
 	RootPersistentFlag2 string `mapstructure:"rootpersistentflag2"`
 	RootPersistentFlag3 string `mapstructure:"rootpersistentflag3"`
 	RootPersistentFlag4 string `mapstructure:"rootpersistentflag4"`
+
+	Debug     bool   `mapstructure:"debug"`
+	LogFormat string `mapstructure:"log-format"`
+	LogLevel  string `mapstructure:"log-level"`
 }
 
 // Initialize the ViperConfig struct with all the root CLI flags bound to Viper env vars
@@ -51,6 +61,43 @@ examples and usage of using your application. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		// Set logs format
+		switch vprFlgsRoot.LogFormat {
+		case "json":
+			logrus.SetFormatter(&logrus.JSONFormatter{
+				PrettyPrint: false,
+			})
+		case "text":
+			logrus.SetFormatter(&logrus.TextFormatter{
+				ForceColors:      true,
+				DisableTimestamp: true,
+			})
+		default:
+			return errors.New("logrus unknown output format")
+		}
+		logrus.Debugf("logrus output format is set to: %s", vprFlgsRoot.LogFormat)
+
+		// Initialize logrus log level and log format for all cobra commands and subcommands.
+		debugFlagIsUsed := cmd.Flags().Lookup("debug").Changed
+
+		switch {
+		case debugFlagIsUsed:
+			// harcode that the --debug flags set logrus level to debug
+			logrus.SetLevel(logrus.DebugLevel)
+		default:
+			// get the log level from viper which is bind to the cobra flag --log-level
+			level, err := logrus.ParseLevel(vprFlgsRoot.LogLevel)
+			if err != nil {
+				return err
+			}
+			logrus.SetLevel(level)
+		}
+		logrus.Debugf("logrus log-level is set to: %s", logrus.GetLevel())
+
+		// PersistentPreRunE returns an error or nil
+		return nil
+	},
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
@@ -104,6 +151,18 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Configuration File")
 
+	// logging level
+	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Set logrus.SetLevel to \"debug\". This is equivalent to using --log-level=debug. Flags --log-level and --debug flag are mutually exclusive. Corresponding environment variable: K8S_KMS_PLUGIN_DEBUG.")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Set logrus.SetLevel. Possible values: trace, debug, info, warning, error, fatal and panic. Flags --log-level and --debug flag are mutually exclusive. Corresponding environment variable: K8S_KMS_PLUGIN_LOG_LEVEL.")
+	rootCmd.RegisterFlagCompletionFunc("log-level", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"trace", "debug", "info", "warning", "error", "fatal", "panic"}, cobra.ShellCompDirectiveNoFileComp
+	})
+	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", "text", "Logrus log output format. Possible values: text, json. Corresponding environment variable: K8S_KMS_PLUGIN_LOG_FORMAT")
+	rootCmd.RegisterFlagCompletionFunc("log-format", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"text", "json"}, cobra.ShellCompDirectiveNoFileComp
+	})
+	rootCmd.MarkFlagsMutuallyExclusive("log-level", "debug")
+
 	rootCmd.PersistentFlags().StringVar(&rootPersistentFlag1, "rootpersistentflag1", "value from default", "persistent root flag 1")
 	rootCmd.PersistentFlags().StringVar(&rootPersistentFlag2, "rootpersistentflag2", "value from default", "persistent root flag 2")
 	rootCmd.PersistentFlags().StringVar(&rootPersistentFlag3, "rootpersistentflag3", "value from default", "persistent root flag 3")
@@ -152,24 +211,7 @@ func initConfig() {
 		}
 	}
 
-	// Support ENV variables with prefix with viper bound to cobra
-	// Example: A CLI flag like --some-flag becomes COBRAVSVIPER_SOME_FLAG in environment variables.
-	viper.SetEnvPrefix("COBRAVSVIPER")
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_")) // Converts flags to ENV format
-	viper.AutomaticEnv()                                   // Enables automatic binding
-
-	// Ensure all Cobra flags are bound to Viper after initializing them
-	if err := viper.BindPFlags(rootCmd.Flags()); err != nil {
-		logrus.Errorf("Error binding flags: %v", err)
-		os.Exit(1)
-	}
-	vprBuf := viper.GetViper()
-	logrus.Tracef("vprBuf := viper.GetViper(): %+v", vprBuf)
-
-	// Initialize and Load the ViperConfig that are bound to root Cobra CLI flags
-	if err := viper.Unmarshal(&vprFlgsRoot); err != nil {
-		logrus.Fatalf("Failed to load viper config: %v", err)
-	}
+	InitViperSubCmd(viper.GetViper(), rootCmd, &vprFlgsRoot)
 
 	// Debugging: Show all loaded settings
 	logrus.Tracef("Viper settings: %+v", viper.AllSettings())

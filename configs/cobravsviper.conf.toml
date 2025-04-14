@@ -1,0 +1,30 @@
+[cobravsviper]
+log-level = "debug"
+rootflag1 = "value from TOML configuration file root 1"
+rootflag2 = "value from TOML configuration file root 2"
+rootflag3 = "value from TOML configuration file root 3"
+rootpersistentflag1 = "value from TOML configuration file root 1"
+rootpersistentflag2 = "value from TOML configuration file root 2"
+rootpersistentflag3 = "value from TOML configuration file root 3"
+
+  [cobravsviper.grp2cmd2]
+  grp2cmd2flag1 = "value from TOML configuration file grp2cmd2 1"
+  grp2cmd2flag2 = "value from TOML configuration file grp2cmd2 2"
+  grp2cmd2flag3 = "value from TOML configuration file grp2cmd2 3"
+  grp2cmd2persistentflag1 = "value from TOML configuration file grp2cmd2 1"
+  grp2cmd2persistentflag2 = "value from TOML configuration file grp2cmd2 2"
+  grp2cmd2persistentflag3 = "value from TOML configuration file grp2cmd2 3"
+
+    [cobravsviper.grp2cmd2.sub221]
+    sub221flag1 = "value from TOML configuration file sub221 1"
+    sub221flag2 = "value from TOML configuration file sub221 2"
+    sub221flag3 = "value from TOML configuration file sub221 3"
+
+    [cobravsviper.grp2cmd2.zu-lu-sub221]
+    zu-lu-sub221flag1 = "value from TOML configuration file zu-lu-sub221 1"
+    zu-lu-sub221flag2 = "value from TOML configuration file zu-lu-sub221 2"
+    zu-lu-sub221flag3 = "value from TOML configuration file zu-lu-sub221 3"
+
+  [cobravsviper.version]
+  output = "json"
+  pretty = true

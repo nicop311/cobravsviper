@@ -91,18 +91,21 @@ func UnmarshalSubMerged(v *viper.Viper, section string, target any) error {
 func InitViperSubCmd(v *viper.Viper, cobraCmd *cobra.Command, target any) {
 	// the name of the cobra subcommand is the "section" of the config file
 	// in this situation we suppose the cobra command correspond to a first level command. But if it is a second or third or greater level subcommand, we need the section to represent all the parent name. How can we get the fulle path to root command ?
-	var path []string
-	for cmd := cobraCmd; cmd != nil && cmd.HasParent(); cmd = cmd.Parent() {
-		path = append([]string{cmd.Name()}, path...)
-	}
-	section := strings.Join(path, ".") // for parsing the config file
+	logrus.WithField("cobra-cmd", cobraCmd.Use).Info("cobra command path: " + cobraCmd.CommandPath())
+
+	// cobra.CommandPath returns the full path to the command, including all parent commands, each command separated by 1 space.
+	// TODO: allow cobra.CommandPath to get new separator like ".".
+	// See https://github.com/spf13/cobra/blob/40b5bc1437a564fc795d388b23835e84f54cd1d1/command.go#L1460
+	sectionPath := strings.ReplaceAll(cobraCmd.CommandPath(), " ", ".")
+	logrus.WithField("cobra-cmd", cobraCmd.Use).Infof("section path: %s", sectionPath)
 
 	// modify viper env prefix with the current cobra subcommand name
-	envPrefixSubCmd := strings.ToUpper(cobraCmd.Name())
-	envPrefixSubCmd = strings.ReplaceAll(envPrefixSubCmd, "-", "_")
-	newEnvPrefix := strings.Join([]string{v.GetEnvPrefix(), envPrefixSubCmd}, "_")
-	logrus.Info("new viper env prefix: " + newEnvPrefix)
-	v.SetEnvPrefix(newEnvPrefix)
+	sectionEnvPrefix := strings.ToUpper(strings.NewReplacer("-", "_", ".", "_").Replace(sectionPath)) // for the env prefix, this should be uppercase snake case and replace dot . with underscore
+	// concat the previous viper env prefix with the current cobra subcommand name
+	logrus.Info("new viper env prefix: " + sectionEnvPrefix)
+	v.SetEnvPrefix(sectionEnvPrefix)
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_")) // Converts flags to ENV format
+	v.AutomaticEnv()                                   // Enables automatic binding
 
 	// Bind subcommand-specific cobra flags to viper
 	err := v.BindPFlags(cobraCmd.Flags())
@@ -111,7 +114,8 @@ func InitViperSubCmd(v *viper.Viper, cobraCmd *cobra.Command, target any) {
 		os.Exit(1)
 	}
 
-	err = UnmarshalSubMerged(v, section, &target)
+	// Load config values for this subcommand
+	err = UnmarshalSubMerged(v, sectionPath, &target)
 	if err != nil {
 		logrus.Fatalf("failed to unmarshal version config: %v", err)
 	}
