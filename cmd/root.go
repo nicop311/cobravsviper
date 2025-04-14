@@ -4,12 +4,9 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
-	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -61,43 +58,6 @@ examples and usage of using your application. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		// Set logs format
-		switch vprFlgsRoot.LogFormat {
-		case "json":
-			logrus.SetFormatter(&logrus.JSONFormatter{
-				PrettyPrint: false,
-			})
-		case "text":
-			logrus.SetFormatter(&logrus.TextFormatter{
-				ForceColors:      true,
-				DisableTimestamp: true,
-			})
-		default:
-			return errors.New("logrus unknown output format")
-		}
-		logrus.Debugf("logrus output format is set to: %s", vprFlgsRoot.LogFormat)
-
-		// Initialize logrus log level and log format for all cobra commands and subcommands.
-		debugFlagIsUsed := cmd.Flags().Lookup("debug").Changed
-
-		switch {
-		case debugFlagIsUsed:
-			// harcode that the --debug flags set logrus level to debug
-			logrus.SetLevel(logrus.DebugLevel)
-		default:
-			// get the log level from viper which is bind to the cobra flag --log-level
-			level, err := logrus.ParseLevel(vprFlgsRoot.LogLevel)
-			if err != nil {
-				return err
-			}
-			logrus.SetLevel(level)
-		}
-		logrus.Debugf("logrus log-level is set to: %s", logrus.GetLevel())
-
-		// PersistentPreRunE returns an error or nil
-		return nil
-	},
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
@@ -175,43 +135,43 @@ func init() {
 }
 
 func initConfig() {
-	// use a configuration file parsed by viper
-	if rootCmd.Flags().Lookup("config").Changed && cfgFile != "" {
-		logrus.Tracef("Case config file from the flag: %s", cfgFile)
-		viper.SetConfigFile(cfgFile)
-	} else if envVar, ok := os.LookupEnv("COBRAVSVIPER_CONFIG"); ok {
-		logrus.Tracef("Case config file from the environment variable: %s", envVar)
-		viper.SetConfigFile(envVar)
-	} else {
-		logrus.Infof("Case config file from default location")
-		// Find home directory.
-		home, err := homedir.Dir()
+
+	ReadViperConfigE(viper.GetViper(), rootCmd)
+
+	InitViperSubCmdE(viper.GetViper(), rootCmd, &vprFlgsRoot)
+
+	// Set logs format
+	switch vprFlgsRoot.LogFormat {
+	case "json":
+		logrus.SetFormatter(&logrus.JSONFormatter{
+			PrettyPrint: false,
+		})
+	case "text":
+		logrus.SetFormatter(&logrus.TextFormatter{
+			ForceColors:      true,
+			DisableTimestamp: true,
+		})
+	default:
+		logrus.WithError(fmt.Errorf("logrus unknown output format")).Error("unknown log format")
+	}
+	logrus.Debugf("logrus output format is set to: %s", vprFlgsRoot.LogFormat)
+
+	// Initialize logrus log level and log format for all cobra commands and subcommands.
+	debugFlagIsUsed := rootCmd.Flags().Lookup("debug").Changed
+
+	switch {
+	case debugFlagIsUsed:
+		// harcode that the --debug flags set logrus level to debug
+		logrus.SetLevel(logrus.DebugLevel)
+	default:
+		// get the log level from viper which is bind to the cobra flag --log-level
+		level, err := logrus.ParseLevel(vprFlgsRoot.LogLevel)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			logrus.WithError(err).Error("unknown log level")
 		}
-
-		viper.SetConfigName("cobravsviper.conf") // name of config file (viper needs no file extension)
-		// TODO: consider using the rootCmd.Flags().Lookup("config").DefValue for viper.SetConfigName
-		// logrus.Infof("default config filename %s", rootCmd.Flags().Lookup("config").DefValue)
-		logrus.Infof("Search config in .config directory %s with name cobravsviper.conf.yaml (without extension).", home)
-		viper.AddConfigPath(home)
-		logrus.Infof("Search config in home directory %s with name cobravsviper.conf.yaml (without extension).", filepath.Join(home, ".config/cobravsviper"))
-		viper.AddConfigPath(filepath.Join(home, ".config/cobravsviper"))
+		logrus.SetLevel(level)
 	}
-
-	// If a config file is not found, log a trace error. Otherwise, read it in.
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			logrus.Trace("No config file found; continue with cobra default values")
-		} else {
-			// Config file was found but another error occurred
-			fmt.Fprintf(os.Stderr, "Error reading config file: %v\n", err)
-			os.Exit(1)
-		}
-	}
-
-	InitViperSubCmd(viper.GetViper(), rootCmd, &vprFlgsRoot)
+	logrus.Debugf("logrus log-level is set to: %s", logrus.GetLevel())
 
 	// Debugging: Show all loaded settings
 	logrus.Tracef("Viper settings: %+v", viper.AllSettings())
