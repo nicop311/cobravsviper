@@ -1,5 +1,6 @@
 cobravsviper:
   log-level: "debug"
+  log-format: "text"
   
   rootflag1: "value from YAML configuration file root 1"
   rootflag2: "value from YAML configuration file root 2"
@@ -28,7 +29,7 @@ cobravsviper:
       sub221flag2: "value from YAML configuration file sub221 2"
       sub221flag3: "value from YAML configuration file sub221 3"
       #sub221flag4: "value from YAML configuration file sub221 4" # we comment this to test if the viper takes the default value
-  value from 
+
     zu-lu-sub221:
       zu-lu-sub221flag1: "value from YAML configuration file zu-lu-sub221 1"
       zu-lu-sub221flag2: "value from YAML configuration file zu-lu-sub221 2"
