@@ -38,8 +38,15 @@ var vprFlgsGrp2cmd2 ViperGrp2cmd2
 // grp2cmd2Cmd represents the grp2cmd2 command
 var grp2cmd2Cmd = &cobra.Command{
 	Use:     "grp2cmd2",
-	Short:   "Test Nested Command",
+	Short:   "Test Nested Command of 1st level",
 	GroupID: "group2",
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		if err := InitViperSubCmdE(viper.GetViper(), cmd, &vprFlgsGrp2cmd2); err != nil {
+			logrus.WithField("cobra-cmd", cmd.Use).WithError(err).Error("Error initializing Viper")
+			return err
+		}
+		return nil
+	},
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -47,6 +54,8 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		logrus.WithField("cobra-cmd", cmd.Use).Debug("grp2cmd2 subcommand called")
+
 		fmt.Println("")
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("flags from subcommand grp2cmd2")
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("grp2cmd2flag1: %s", vprFlgsGrp2cmd2.Grp2cmd2Flag1)
@@ -72,9 +81,10 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	cobra.OnInitialize(func() {
-		InitViperSubCmd(viper.GetViper(), grp2cmd2Cmd, &vprFlgsGrp2cmd2)
-	})
+	// cobra.OnInitialize(func() {
+	// 	ReadViperConfig(viper.GetViper(), grp2cmd2Cmd)
+	// 	InitViperSubCmd(viper.GetViper(), grp2cmd2Cmd, &vprFlgsGrp2cmd2)
+	// })
 	rootCmd.AddCommand(grp2cmd2Cmd)
 
 	grp2cmd2Cmd.PersistentFlags().StringVar(&grp2cmd2PersistentFlag1, "grp2cmd2persistentflag1", "value from default", "grp2cmd2 Persistent flag 1")

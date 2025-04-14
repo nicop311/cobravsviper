@@ -30,9 +30,8 @@ var vprFlgsVersion ViperFlagsVersion
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
-	Use:     "version",
-	Short:   "Print the version information",
-	GroupID: "group2",
+	Use:   "version",
+	Short: "Print the version information",
 	Long: `Print the version information with various level of details
 including information of the build and git repository metadata.
 
@@ -40,6 +39,13 @@ Examples:
   # print the version information with git repository details as a one liner
   # JSON string.
   cobravsviper version -o json --pretty=false`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		if err := InitViperSubCmdE(viper.GetViper(), cmd, &vprFlgsVersion); err != nil {
+			logrus.WithField("cobra-cmd", cmd.Use).WithError(err).Error("Error initializing Viper")
+			return err
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Output version info
 		logrus.WithField("cobra-cmd", cmd.Use).Debug("version subcommand called")
@@ -48,9 +54,6 @@ Examples:
 }
 
 func init() {
-	cobra.OnInitialize(func() {
-		InitViperSubCmd(viper.GetViper(), versionCmd, &vprFlgsVersion)
-	})
 	// rootCmd is the parent command
 	rootCmd.AddCommand(versionCmd)
 

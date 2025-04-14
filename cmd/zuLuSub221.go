@@ -35,6 +35,17 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		// Manually call parent’s PersistentPreRunE
+		if cmd.Parent() != nil && cmd.Parent().PersistentPreRunE != nil {
+			if err := cmd.Parent().PersistentPreRunE(cmd.Parent(), args); err != nil {
+				return err
+			}
+		}
+
+		InitViperSubCmdE(viper.GetViper(), cmd, &vprFlgsZuLuSub221)
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("")
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("flags from subcommand sub221")
@@ -61,10 +72,6 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	cobra.OnInitialize(func() {
-		InitViperSubCmd(viper.GetViper(), zuLuSub221Cmd, &vprFlgsZuLuSub221)
-	})
-
 	grp2cmd2Cmd.AddCommand(zuLuSub221Cmd)
 
 	zuLuSub221Cmd.Flags().StringVar(&zuLuSub221Flag1, "zu-lu-sub221flag1", "value from default", "zu-lu-sub221 flag 1")

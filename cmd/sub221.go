@@ -28,13 +28,24 @@ var vprFlgsSub221 ViperSub221
 // sub221Cmd represents the sub221 command
 var sub221Cmd = &cobra.Command{
 	Use:   "sub221",
-	Short: "Test Nested Command",
+	Short: "Test Nested Command of 2nd Level",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		// Manually call parent’s PersistentPreRunE
+		if cmd.Parent() != nil && cmd.Parent().PersistentPreRunE != nil {
+			if err := cmd.Parent().PersistentPreRunE(cmd.Parent(), args); err != nil {
+				return err
+			}
+		}
+
+		InitViperSubCmdE(viper.GetViper(), cmd, &vprFlgsSub221)
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("")
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("flags from subcommand sub221")
@@ -62,7 +73,7 @@ to quickly create a Cobra application.`,
 
 func init() {
 	cobra.OnInitialize(func() {
-		InitViperSubCmd(viper.GetViper(), sub221Cmd, &vprFlgsSub221)
+		InitViperSubCmdE(viper.GetViper(), sub221Cmd, &vprFlgsSub221)
 	})
 
 	grp2cmd2Cmd.AddCommand(sub221Cmd)
