@@ -114,18 +114,18 @@ func UnmarshalSubMergedE(v *viper.Viper, section string, target any) error {
 func InitViperSubCmdE(v *viper.Viper, cobraCmd *cobra.Command, target any) error {
 	// the name of the cobra subcommand is the "section" of the config file
 	// in this situation we suppose the cobra command correspond to a first level command. But if it is a second or third or greater level subcommand, we need the section to represent all the parent name. How can we get the fulle path to root command ?
-	logrus.WithField("cobra-cmd", cobraCmd.Use).Info("cobra command path: " + cobraCmd.CommandPath())
+	logrus.WithField("cobra-cmd", cobraCmd.Use).Trace("cobra command path: " + cobraCmd.CommandPath())
 
 	// cobra.CommandPath returns the full path to the command, including all parent commands, each command separated by 1 space.
 	// TODO: allow cobra.CommandPath to get new separator like ".".
 	// See https://github.com/spf13/cobra/blob/40b5bc1437a564fc795d388b23835e84f54cd1d1/command.go#L1460
 	sectionPath := strings.ReplaceAll(cobraCmd.CommandPath(), " ", ".")
-	logrus.WithField("cobra-cmd", cobraCmd.Use).Infof("section path: %s", sectionPath)
+	logrus.WithField("cobra-cmd", cobraCmd.Use).Tracef("section path: %s", sectionPath)
 
 	// modify viper env prefix with the current cobra subcommand name
 	sectionEnvPrefix := strings.ToUpper(strings.NewReplacer("-", "_", ".", "_").Replace(sectionPath)) // for the env prefix, this should be uppercase snake case and replace dot . with underscore
 	// concat the previous viper env prefix with the current cobra subcommand name
-	logrus.WithField("cobra-cmd", cobraCmd.Use).Info("new viper env prefix: " + sectionEnvPrefix)
+	logrus.WithField("cobra-cmd", cobraCmd.Use).Trace("new viper env prefix: " + sectionEnvPrefix)
 	v.SetEnvPrefix(sectionEnvPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_")) // Converts flags to ENV format
 	v.AutomaticEnv()                                   // Enables automatic binding
@@ -169,7 +169,7 @@ func ReadViperConfigE(v *viper.Viper, cmd *cobra.Command) error {
 		logrus.Tracef("Case config file from the environment variable: %s", envVar)
 		viper.SetConfigFile(envVar)
 	} else {
-		logrus.Infof("Case config file from default location")
+		logrus.Tracef("Case config file from default location")
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
@@ -179,9 +179,9 @@ func ReadViperConfigE(v *viper.Viper, cmd *cobra.Command) error {
 		viper.SetConfigName("cobravsviper.conf") // name of config file (viper needs no file extension)
 		// TODO: consider using the rootCmd.Flags().Lookup("config").DefValue for viper.SetConfigName
 		// logrus.Infof("default config filename %s", rootCmd.Flags().Lookup("config").DefValue)
-		logrus.Infof("Search config in .config directory %s with name cobravsviper.conf.yaml (without extension).", home)
+		logrus.Tracef("Search config in .config directory %s with name cobravsviper.conf.yaml (without extension).", home)
 		viper.AddConfigPath(home)
-		logrus.Infof("Search config in home directory %s with name cobravsviper.conf.yaml (without extension).", filepath.Join(home, ".config/cobravsviper"))
+		logrus.Tracef("Search config in home directory %s with name cobravsviper.conf.yaml (without extension).", filepath.Join(home, ".config/cobravsviper"))
 		viper.AddConfigPath(filepath.Join(home, ".config/cobravsviper"))
 	}
 
