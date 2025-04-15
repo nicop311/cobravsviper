@@ -25,5 +25,8 @@ go.work.sum
 dist/
 cobravsviper
 
+# Goenv
+.go-version
+
 # env file
 .env
