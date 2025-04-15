@@ -39,24 +39,24 @@ var (
 	BuildDate          string
 )
 
-// VersionOutput represents the JSON output structure.
-type VersionOutput struct {
-	VersionData VersionData `json:"cobravsviper-cli"`
+// VersionDetails represents the JSON & YAML output structure.
+type VersionDetails struct {
+	VersionData VersionData `json:"cobravsviper" yaml:"cobravsviper"`
 }
 
 // VersionData holds structured versioning details.
 type VersionData struct {
-	Major              uint64 `json:"major"`
-	Minor              uint64 `json:"minor"`
-	Patch              uint64 `json:"patch"`
-	Version            string `json:"version"` // raw git describe
-	IsGitDirty         bool   `json:"isGitDirty"`
-	GitCommitIdLong    string `json:"gitCommitIdLong"`
-	GitCommitIdShort   string `json:"gitCommitIdShort"`
-	GitCommitTimestamp string `json:"gitCommitTimestamp"`
-	GoVersion          string `json:"goVersion"`
-	BuildDate          string `json:"buildDate"`
-	BuildPlatform      string `json:"buildPlatform"`
+	Major              uint64 `json:"major" yaml:"major"`
+	Minor              uint64 `json:"minor" yaml:"minor"`
+	Patch              uint64 `json:"patch" yaml:"patch"`
+	Version            string `json:"version" yaml:"version"` // raw git describe
+	IsGitDirty         bool   `json:"isGitDirty" yaml:"isGitDirty"`
+	GitCommitIdLong    string `json:"gitCommitIdLong" yaml:"gitCommitIdLong"`
+	GitCommitIdShort   string `json:"gitCommitIdShort" yaml:"gitCommitIdShort"`
+	GitCommitTimestamp string `json:"gitCommitTimestamp" yaml:"gitCommitTimestamp"`
+	GoVersion          string `json:"goVersion" yaml:"goVersion"`
+	BuildDate          string `json:"buildDate" yaml:"buildDate"`
+	BuildPlatform      string `json:"buildPlatform" yaml:"buildPlatform"`
 }
 
 // IsPopulated checks if the global variables for version information are populated.
@@ -128,34 +128,36 @@ func NewVersionData() (VersionData, error) {
 	return versionData, nil
 }
 
+// NewVersionDetails creates a new VersionDetails object using NewVersionData.
+func NewVersionDetails() (VersionDetails, error) {
+	versionData, err := NewVersionData()
+	if err != nil {
+		return VersionDetails{}, err
+	}
+	return VersionDetails{VersionData: versionData}, nil
+}
+
 // returnJsonVersion returns the version as a JSON object.
 func returnJsonVersion(prettyPrint bool) ([]byte, error) {
-	versionOutput, err := NewVersionData()
+	versionDetails, err := NewVersionDetails()
 	if err != nil {
 		return nil, err
 	}
 
 	if prettyPrint {
-		return json.MarshalIndent(versionOutput, "", "  ")
+		return json.MarshalIndent(versionDetails, "", "  ")
 	}
-	return json.Marshal(versionOutput)
+	return json.Marshal(versionDetails)
 }
 
 // returnYamlVersion returns the version as a YAML object.
 func returnYamlVersion() ([]byte, error) {
-	jsonData, err := returnJsonVersion(false)
+	versionDetails, err := NewVersionDetails()
 	if err != nil {
-		logrus.WithError(err).Error("Failed to marshal JSON for YAML conversion")
 		return nil, err
 	}
 
-	var data map[string]interface{}
-	if err := json.Unmarshal(jsonData, &data); err != nil {
-		logrus.WithError(err).Error("Failed to unmarshal JSON for YAML conversion")
-		return nil, err
-	}
-
-	yamlData, err := yaml.Marshal(data)
+	yamlData, err := yaml.Marshal(versionDetails)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to marshal YAML")
 		return nil, err
