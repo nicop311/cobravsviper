@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2024 nicop311. All rights reserved.
+// Copyright (c) 2025 nicop311. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +27,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// populated by the LDFLAGS at build
+// populated by the Go LDFLAGS at build
 var (
 	RawGitDescribe     string
+	GitDirtyStr        string // "true" or "false" but as strings as they are retrieved from git bash
 	GitCommitIdShort   string
 	GitCommitIdLong    string
 	GitCommitTimestamp string
@@ -49,6 +50,7 @@ type VersionData struct {
 	Minor              uint64 `json:"minor"`
 	Patch              uint64 `json:"patch"`
 	Version            string `json:"version"` // raw git describe
+	IsGitDirty         bool   `json:"isGitDirty"`
 	GitCommitIdLong    string `json:"gitCommitIdLong"`
 	GitCommitIdShort   string `json:"gitCommitIdShort"`
 	GitCommitTimestamp string `json:"gitCommitTimestamp"`
@@ -57,15 +59,30 @@ type VersionData struct {
 	BuildPlatform      string `json:"buildPlatform"`
 }
 
-// getVersionData returns a VersionData struct with information from git
-// from LDFLAGS such as the raw git describe output, git commit ID (long and
-// short) and commit timestamp, Go version, build date, and build platform. It parses
-// the raw git describe output and converts it into semantic versioning (major,
-// minor, patch) and stores it in the VersionData struct. If the raw git describe
-// output is not parsable as semantic versioning, it sets the major, minor, and
-// patch fields to 0 and returns an error.
-func getVersionData() (VersionData, error) {
-	// Initialize VersionData to hold information from git from LDFLAGS
+// IsPopulated checks if the global variables for version information are populated.
+// Returns true if at least RawGitDescribe is not empty, false otherwise.
+// If false, most probably this is an issue with LDFLAGS.
+func IsPopulated() bool {
+	return RawGitDescribe != ""
+}
+
+// IsDirty takes a string from a build flag and returns a boolean indicating whether
+// the build is from a dirty git tree.
+func IsDirty(isDirtyStr string) (bool, error) {
+	switch isDirtyStr {
+	case "true":
+		return true, nil
+	case "false":
+		return false, nil
+	default:
+		logrus.WithField("GitDirtyStr", isDirtyStr).Warn("Unexpected Git dirty string, assuming clean")
+		return false, fmt.Errorf("invalid dirty information: %s", GitDirtyStr)
+	}
+}
+
+// unset (zero v0.0.0).
+func NewVersionData() (VersionData, error) {
+	// this is a minimal content of the VersionData information
 	versionData := VersionData{
 		Version:            RawGitDescribe,
 		GitCommitIdLong:    GitCommitIdLong,
@@ -76,17 +93,22 @@ func getVersionData() (VersionData, error) {
 		BuildPlatform:      BuildPlatform,
 	}
 
+	// add the git state dirty true or false
+	isDirty, err := IsDirty(GitDirtyStr)
+	if err != nil {
+		// only do a warning, do not return an error
+		logrus.WithError(err).Warning("Failed to parse Git dirty status")
+	}
+	versionData.IsGitDirty = isDirty
+
 	// Check if RawGitDescribe is a valid semantic version or a commit hash
 	version, err := go_version.NewSemver(RawGitDescribe)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"raw_git_describe": RawGitDescribe,
 			"error":            err,
-		}).Debug("Invalid semantic versioning, falling back to snapshot version and setting major.minor.patch to 0.0.0")
-		versionData.Major = uint64(0)
-		versionData.Minor = uint64(0)
-		versionData.Patch = uint64(0)
-		return versionData, nil // Return nil error because we are treating it as a "snapshot" version
+		}).Debug("Invalid semantic versioning, falling back to snapshot version")
+		return versionData, nil
 	}
 
 	// If version parsing is successful, populate the major, minor, and patch fields
@@ -102,12 +124,13 @@ func getVersionData() (VersionData, error) {
 	versionData.Major = uint64(versionSegments[0])
 	versionData.Minor = uint64(versionSegments[1])
 	versionData.Patch = uint64(versionSegments[2])
+
 	return versionData, nil
 }
 
 // returnJsonVersion returns the version as a JSON object.
 func returnJsonVersion(prettyPrint bool) ([]byte, error) {
-	versionOutput, err := getVersionData()
+	versionOutput, err := NewVersionData()
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +165,7 @@ func returnYamlVersion() ([]byte, error) {
 
 // LogrusOutputVersion logs the version details at server startup. For server logging.
 func LogrusOutputVersion() {
-	versionData, err := getVersionData()
+	versionData, err := NewVersionData()
 	if err != nil {
 		logrus.WithError(err).Error("Failed to fetch version data")
 		return
@@ -155,6 +178,7 @@ func LogrusOutputVersion() {
 		"commit":           versionData.GitCommitIdLong,
 		"go-version":       versionData.GoVersion,
 		"raw-git-describe": versionData.Version,
+		"is-git-dirty":     versionData.IsGitDirty,
 		"short-commit":     versionData.GitCommitIdShort,
 	}).Debug("cobravsviper version details")
 }

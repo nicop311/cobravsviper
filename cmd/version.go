@@ -49,6 +49,11 @@ Examples:
 	Run: func(cmd *cobra.Command, args []string) {
 		// Output version info
 		logrus.WithField("cobra-cmd", cmd.Use).Debug("version subcommand called")
+
+		if !version.IsPopulated() {
+			logrus.WithField("cobra-cmd", cmd.Use).Warn("build & git metadata are missing")
+		}
+
 		fmt.Fprintln(cmd.OutOrStdout(), version.VersionOutputToString(vprFlgsVersion.OutputFormat, vprFlgsVersion.PrettyPrintVersion))
 	},
 }
