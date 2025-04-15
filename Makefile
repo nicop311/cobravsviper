@@ -7,7 +7,7 @@ PROJECT_NAME := cobravsviper
 GO_MODULE_NAME := "github.com/nicop311/$(PROJECT_NAME)"
 
 # Useful variables for build metadata
-VERSION ?= $(shell git describe --tags --always)
+VERSION ?= $(shell git describe --tags --always --dirty)
 COMMIT_LONG ?= $(shell git rev-parse HEAD)
 COMMIT_SHORT ?= $(shell git rev-parse --short=8 HEAD)
 COMMIT_TIMESTAMP := $(shell git show -s --format=%cI HEAD)
