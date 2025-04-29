@@ -8,6 +8,8 @@ cobra CLI or env var depending on how, when and in what order `viper.Unmarshal` 
 
 - [1. How the project was bootstraped](#1-how-the-project-was-bootstraped)
 - [2. Build The Project Locally](#2-build-the-project-locally)
+  - [Build with `make` + `go`](#build-with-make--go)
+  - [Build with `go`](#build-with-go)
 - [3. CLI User Inputs Priority](#3-cli-user-inputs-priority)
   - [3.1. The root cobra command help message](#31-the-root-cobra-command-help-message)
   - [3.2. The `version` cobra subcommand help message](#32-the-version-cobra-subcommand-help-message)
@@ -39,6 +41,20 @@ cobra-cli add version
 ```
 
 ## 2. Build The Project Locally
+
+### Build with `make` + `go`
+
+```
+make build-debug
+```
+
+or
+
+```
+make build
+```
+
+### Build with `go`
 
 ```bash
 go build -o cobravsviper  main.go
