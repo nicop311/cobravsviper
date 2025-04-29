@@ -143,6 +143,7 @@
                 "--grp2cmd2persistentflag1", "value from cli",
                 "sub221",
                 "--sub221flag1", "value from cli",
+                "--sub221flagnovar1", "value from cli",
                 "--config", "configs/cobravsviper.conf.yaml",
             ],
             "dlvFlags": ["--check-go-version=false"],
@@ -150,6 +151,7 @@
                 "COBRAVSVIPER_ROOTPERSISTENTFLAG2": "value from envvars",
                 "COBRAVSVIPER_GRP2CMD2_GRP2CMD2PERSISTENTFLAG2": "value from envvars",
                 "COBRAVSVIPER_GRP2CMD2_SUB221_SUB221FLAG2": "value from envvars",
+                "COBRAVSVIPER_GRP2CMD2_SUB221_SUB221FLAGNOVAR2": "value from envvars",
             },
             "cwd": "${workspaceFolder}"
         },

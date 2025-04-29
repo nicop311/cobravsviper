@@ -8,20 +8,22 @@ cobra CLI or env var depending on how, when and in what order `viper.Unmarshal` 
 
 - [1. How the project was bootstraped](#1-how-the-project-was-bootstraped)
 - [2. Build The Project Locally](#2-build-the-project-locally)
-  - [Build with `make` + `go`](#build-with-make--go)
-  - [Build with `go`](#build-with-go)
-- [3. CLI User Inputs Priority](#3-cli-user-inputs-priority)
+  - [2.1. Build with `make` + `go`](#21-build-with-make--go)
+  - [2.2. Build with `go`](#22-build-with-go)
+- [3. CLI User Inputs Priority: the Theory and Issue in Practice](#3-cli-user-inputs-priority-the-theory-and-issue-in-practice)
   - [3.1. The root cobra command help message](#31-the-root-cobra-command-help-message)
   - [3.2. The `version` cobra subcommand help message](#32-the-version-cobra-subcommand-help-message)
   - [3.3. Priority In Theory: CLI \> Env Vars \> Config File \> Default](#33-priority-in-theory-cli--env-vars--config-file--default)
   - [3.4. In Practice:](#34-in-practice)
     - [3.4.1. Cobra Root Command: CLI Priority Success](#341-cobra-root-command-cli-priority-success)
     - [3.4.2. Cobra Sub Command: CLI Priority Failure](#342-cobra-sub-command-cli-priority-failure)
-      - [v0.1.0](#v010)
-      - [v0.2.0](#v020)
+      - [3.4.2.1. v0.1.0](#3421-v010)
+      - [3.4.2.2. v0.2.0](#3422-v020)
     - [3.4.3. Using PersistenFlags from root cobra while running the sub command](#343-using-persistenflags-from-root-cobra-while-running-the-sub-command)
-      - [v0.1.0](#v010-1)
-      - [v0.2.0](#v020-1)
+      - [3.4.3.1. v0.1.0](#3431-v010)
+      - [3.4.3.2. v0.2.0](#3432-v020)
+- [4. CLI User Inputs Priority: my workaround for Viper and Cobra](#4-cli-user-inputs-priority-my-workaround-for-viper-and-cobra)
+  - [4.1. Results of workarround](#41-results-of-workarround)
 
 
 ## 1. How the project was bootstraped
@@ -42,7 +44,7 @@ cobra-cli add version
 
 ## 2. Build The Project Locally
 
-### Build with `make` + `go`
+### 2.1. Build with `make` + `go`
 
 ```
 make build-debug
@@ -54,7 +56,7 @@ or
 make build
 ```
 
-### Build with `go`
+### 2.2. Build with `go`
 
 ```bash
 go build -o cobravsviper  main.go
@@ -66,7 +68,7 @@ With debug:
 go build -gcflags="all=-N -l" -o cobravsviper  main.go
 ```
 
-## 3. CLI User Inputs Priority
+## 3. CLI User Inputs Priority: the Theory and Issue in Practice
 
 In this project, [Cobra](https://github.com/spf13/cobra) is used to handel the CLI commands, subcommands
 and all their flags.
@@ -78,6 +80,8 @@ This allow the developpers to only add and modify cobra flags, and viper will au
 dedicated viper configuration.
 
 ### 3.1. The root cobra command help message
+
+> Note: This below corresponds to tag [v0.1.0](https://github.com/nicop311/cobravsviper/tree/v0.1.0). Check latest tag for workarround.
 
 ```
 ./cobravsviper -h
@@ -110,6 +114,8 @@ Use "cobravsviper [command] --help" for more information about a command.
 ```
 
 ### 3.2. The `version` cobra subcommand help message
+
+> Note: This below corresponds to tag [v0.1.0](https://github.com/nicop311/cobravsviper/tree/v0.1.0). Check latest tag for workarround.
 
 `version` is the name of our first subcommand.
 
@@ -160,6 +166,8 @@ This priority works for the root cobra command. But this priority does not work 
 ### 3.4. In Practice: 
 
 #### 3.4.1. Cobra Root Command: CLI Priority Success
+
+> Note: This below corresponds to tag [v0.1.0](https://github.com/nicop311/cobravsviper/tree/v0.1.0). Check latest tag for workarround.
 
 In this situation, `viper` and `cobra` behave as expected: the priority "CLI > Env Vars > Config File > Default" is repected.
 
@@ -226,7 +234,9 @@ Or you can test any variation of user input, you will still have priority CLI > 
 
 #### 3.4.2. Cobra Sub Command: CLI Priority Failure
 
-##### v0.1.0
+##### 3.4.2.1. v0.1.0
+
+> Note: This below corresponds to tag [v0.1.0](https://github.com/nicop311/cobravsviper/tree/v0.1.0). Check latest tag for workarround.
 
 In this situation `v0.1.0`, we try the cobra subcommand `version` and set only the flags corresponding to this subcommand.
 Notice `viper` does not handle well the subcommand's flags.
@@ -262,7 +272,9 @@ should have taken the value `from configuration file`.
 
 `versionflag4` is expected to be `from default`, but this is pure coincidence.
 
-##### v0.2.0
+##### 3.4.2.2. v0.2.0
+
+> Note: This below corresponds to tag [v0.2.0](https://github.com/nicop311/cobravsviper/tree/v0.2.0). Check latest tag for workarround.
 
 With tag v0.2.0, we modify `cmd/version.go` to first unmarshall from config file (`viper.Sub("version").Unmarshal(&vprFlgsVersion)`), and then unmarshal from cobra autobindenv (`viper.Unmarshal(&vprFlgsVersion)`).
 Notice the `versionflag3` does not get values from configuration file, since the second unmarshal (without `Sub`) overrides the first unmarshal (the one with `.Sub`).
@@ -287,7 +299,9 @@ INFO[0000] rootflag4: value from default                 cobra-cmd=version
 
 #### 3.4.3. Using PersistenFlags from root cobra while running the sub command
 
-##### v0.1.0
+##### 3.4.3.1. v0.1.0
+
+> Note: This below corresponds to tag [v0.1.0](https://github.com/nicop311/cobravsviper/tree/v0.1.0). Check latest tag for workarround.
 
 In this situation, we try the cobra subcommand `version` with its 4 parameters set like previously.
 And we also set the values of the _Persistent flags from rootCmd_.
@@ -336,7 +350,9 @@ INFO[0000] rootflag4: value from default                 cobra-cmd=version
 
 This problem comes from `viper.Sub("version").Unmarshal(&vprFlgsVersion)` that do not keep the priority order.
 
-##### v0.2.0
+##### 3.4.3.2. v0.2.0
+
+> Note: This below corresponds to tag [v0.2.0](https://github.com/nicop311/cobravsviper/tree/v0.2.0). Check latest tag for workarround.
 
 With tag v0.2.0, we modify `cmd/version.go` to first unmarshall from config file (`viper.Sub("version").Unmarshal(&vprFlgsVersion)`), and then unmarshal from cobra autobindenv (`viper.Unmarshal(&vprFlgsVersion)`).
 Notice the `versionflag3` does not get values from configuration file, since the second unmarshal (without `Sub`) overrides the first unmarshal (the one with `.Sub`).
@@ -361,3 +377,139 @@ INFO[0000] rootflag2: value from envvars                 cobra-cmd=version
 INFO[0000] rootflag3: value from configuration file      cobra-cmd=version
 INFO[0000] rootflag4: value from default                 cobra-cmd=version
 ```
+
+## 4. CLI User Inputs Priority: my workaround for Viper and Cobra
+
+I found a workarround without modifying cobra nor viper. 
+
+Look at file [`cmd/viper-patch-sub.go`](https://github.com/nicop311/cobravsviper/blob/48485b7e16c9a2837dbb45e743371d129fbab426/cmd/viper-patch-sub.go) with my patch & replacement for `viper.Sub` and `viper.Unmarshal`. I define the function [`UnmarshalSubMergedE`](https://github.com/nicop311/cobravsviper/blob/6111c0a815a3caf2616787f9989e50b0724ed20d/cmd/viper-patch-sub.go#L72), which is a replacement for `viper.Unmarshal` which supports input priority `flags > env > merged config > defaults`. And I define function [`InitViperSubCmdE`](https://github.com/nicop311/cobravsviper/blob/6111c0a815a3caf2616787f9989e50b0724ed20d/cmd/viper-patch-sub.go#L114) which does the binding between Viper and Cobra using my custom `UnmarshalSubMergedE` mathod and taking into account the YAML/TOML paths.
+
+Last but not least, 
+
+For a Level 1 cobra command : I need to call my function within a `cobra.PersistentPreRunE` like this:
+
+```golang
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		if err := InitViperSubCmdE(viper.GetViper(), cmd, &vprFlgsVersion); err != nil {
+			logrus.WithField("cobra-cmd", cmd.Use).WithError(err).Error("Error initializing Viper")
+			return err
+		}
+		return nil
+	},
+```
+
+For a Level 2 cobra command : same idea, but I need to manually call the `cobra.PersistentPreRunE` command from the parent command, otherwise the persistentFlags from the parent commands are not taken into account.
+
+```golang
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		// Manually call parent’s PersistentPreRunE
+		if cmd.Parent() != nil && cmd.Parent().PersistentPreRunE != nil {
+			if err := cmd.Parent().PersistentPreRunE(cmd.Parent(), args); err != nil {
+				return err
+			}
+		}
+
+		InitViperSubCmdE(viper.GetViper(), cmd, &vprFlgsSub221)
+		return nil
+	},
+```
+
+TODO: contribute to viper?
+* https://github.com/spf13/viper/discussions/1756?sort=new#discussioncomment-12981228
+* https://github.com/spf13/viper/issues/368#issuecomment-2838865972
+
+
+### 4.1. Results of workarround
+
+```
+./cobravsviper -h
+A longer description that spans multiple lines and likely contains
+examples and usage of using your application. For example:
+
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.
+
+Usage:
+  cobravsviper [flags]
+  cobravsviper [command]
+
+Group 1 Commands:
+  grp1cmd1    A brief description of your command
+  grp1cmd2    A brief description of your command
+
+Group 2 Commands:
+  grp2cmd1    A brief description of your command
+  grp2cmd2    Test Nested Command of 1st level
+
+Additional Commands:
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  version     Print the version information
+
+Flags:
+      --config string                Configuration File
+      --debug                        Set logrus.SetLevel to "debug". This is equivalent to using --log-level=debug. Flags --log-level and --debug flag are mutually exclusive. Corresponding environment variable: K8S_KMS_PLUGIN_DEBUG.
+  -h, --help                         help for cobravsviper
+      --log-format string            Logrus log output format. Possible values: text, json. Corresponding environment variable: K8S_KMS_PLUGIN_LOG_FORMAT (default "text")
+      --log-level string             Set logrus.SetLevel. Possible values: trace, debug, info, warning, error, fatal and panic. Flags --log-level and --debug flag are mutually exclusive. Corresponding environment variable: K8S_KMS_PLUGIN_LOG_LEVEL. (default "info")
+      --rootflag1 string             root flag 1 (default "value from default")
+      --rootflag2 string             root flag 2 (default "value from default")
+      --rootflag3 string             root flag 3 (default "value from default")
+      --rootflag4 string             root flag 4 (default "value from default")
+      --rootpersistentflag1 string   persistent root flag 1 (default "value from default")
+      --rootpersistentflag2 string   persistent root flag 2 (default "value from default")
+      --rootpersistentflag3 string   persistent root flag 3 (default "value from default")
+      --rootpersistentflag4 string   persistent root flag 4 (default "value from default")
+  -t, --toggle                       Help message for toggle
+
+Use "cobravsviper [command] --help" for more information about a command.
+```
+
+Run this example command which uses the 4 inputs (CLI > Env Vars > Config File > Default) for a level 2 cobra nested subcommand: 
+
+```bash
+COBRAVSVIPER_ROOTPERSISTENTFLAG2="value from envvars" \
+COBRAVSVIPER_GRP2CMD2_GRP2CMD2PERSISTENTFLAG2="value from envvars" \
+COBRAVSVIPER_GRP2CMD2_SUB221_SUB221FLAG2="value from envvars" \
+COBRAVSVIPER_GRP2CMD2_SUB221_SUB221FLAGNOVAR2="value from envvars" \
+cobravsviper \
+  --rootpersistentflag1  "value from cli" \
+  grp2cmd2 \
+  --grp2cmd2persistentflag1  "value from cli" \
+  sub221 \
+  --sub221flag1  "value from cli" \
+  --sub221flagnovar1  "value from cli" \
+  --config  "configs/cobravsviper.conf.yaml"
+```
+
+Or run the vscode debug scenario `dlv vscode: sub221 env vars and config file` from [`.vscode/launch.json`](.vscode/launch.json).
+
+Results below: every input is following the proper priority (CLI > Env Vars > Config File > Default).
+```log
+DEBU logrus log-level is set to: debug            
+
+INFO flags from subcommand sub221                  cobra-cmd=sub221
+INFO sub221flag1: value from cli                   cobra-cmd=sub221
+INFO sub221flag2: value from envvars               cobra-cmd=sub221
+INFO sub221flag3: value from YAML configuration file sub221 3  cobra-cmd=sub221
+INFO sub221flag4: value from default               cobra-cmd=sub221
+
+INFO sub221flagnovar1: value from cli              cobra-cmd=sub221
+INFO sub221flagnovar2: value from envvars          cobra-cmd=sub221
+INFO sub221flagnovar3: value from YAML configuration file sub221 3  cobra-cmd=sub221
+INFO sub221flagnovar4: value from default 0.0.0.4  cobra-cmd=sub221
+
+INFO Persistent flags from subcommand grp2cmd2     cobra-cmd=sub221
+INFO grp2cmd2persistentflag1: value from cli       cobra-cmd=sub221
+INFO grp2cmd2persistentflag2: value from envvars   cobra-cmd=sub221
+INFO grp2cmd2persistentflag3: value from YAML configuration file grp2cmd2 3  cobra-cmd=sub221
+INFO grp2cmd2persistentflag4: value from default   cobra-cmd=sub221
+
+INFO Persistent flags from rootCmd                 cobra-cmd=sub221
+INFO rootpersistentflag1: value from cli           cobra-cmd=sub221
+INFO rootpersistentflag2: value from envvars       cobra-cmd=sub221
+INFO rootpersistentflag3: value from YAML configuration file root 3  cobra-cmd=sub221
+INFO rootpersistentflag4: value from default       cobra-cmd=sub221
+```
+

@@ -60,7 +60,15 @@ to quickly create a Cobra application.`,
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("sub221flag4: %s", vprFlgsSub221.Sub221Flag4)
 
 		fmt.Println("")
-		logrus.WithField("cobra-cmd", cmd.Use).Infof("flags from subcommand grp2cmd2")
+
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("sub221flagnovar1: %s", vprFlgsSub221.Sub221flagnovar1)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("sub221flagnovar2: %s", vprFlgsSub221.Sub221flagnovar2)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("sub221flagnovar3: %s", vprFlgsSub221.Sub221flagnovar3)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("sub221flagnovar4: %s", vprFlgsSub221.Sub221flagnovar4)
+
+		fmt.Println("")
+
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("Persistent flags from subcommand grp2cmd2")
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("grp2cmd2persistentflag1: %s", vprFlgsGrp2cmd2.Grp2cmd2PersistentFlag1)
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("grp2cmd2persistentflag2: %s", vprFlgsGrp2cmd2.Grp2cmd2PersistentFlag2)
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("grp2cmd2persistentflag3: %s", vprFlgsGrp2cmd2.Grp2cmd2PersistentFlag3)
@@ -73,13 +81,6 @@ to quickly create a Cobra application.`,
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag2: %s", vprFlgsRoot.RootPersistentFlag2)
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag3: %s", vprFlgsRoot.RootPersistentFlag3)
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag4: %s", vprFlgsRoot.RootPersistentFlag4)
-
-		fmt.Println("")
-
-		logrus.WithField("cobra-cmd", cmd.Use).Infof("vprFlgsSub221.sub221flagnovar1: %s", vprFlgsSub221.Sub221flagnovar1)
-		logrus.WithField("cobra-cmd", cmd.Use).Infof("vprFlgsSub221.sub221flagnovar2: %s", vprFlgsSub221.Sub221flagnovar2)
-		logrus.WithField("cobra-cmd", cmd.Use).Infof("vprFlgsSub221.sub221flagnovar3: %s", vprFlgsSub221.Sub221flagnovar3)
-		logrus.WithField("cobra-cmd", cmd.Use).Infof("vprFlgsSub221.sub221flagnovar4: %s", vprFlgsSub221.Sub221flagnovar4)
 	},
 }
 
