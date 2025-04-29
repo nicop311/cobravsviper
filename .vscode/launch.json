@@ -3,8 +3,7 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [ 
-
+    "configurations": [
         {
             "name": "dlv vscode: VERSION yaml env var",
             "type": "go",
@@ -173,6 +172,28 @@
                 "COBRAVSVIPER_ROOTPERSISTENTFLAG2": "value from envvars",
                 "COBRAVSVIPER_GRP2CMD2_GRP2CMD2PERSISTENTFLAG2": "value from envvars",
                 "COBRAVSVIPER_GRP2CMD2_ZU_LU_SUB221_ZU_LU_SUB221FLAG2": "value from envvars",
+            },
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "dlv vscode: sub221 test flags no *Var",
+            "type": "go",
+            "request": "launch",
+            "mode": "exec",
+            "program": "${workspaceFolder}/cobravsviper",
+            "args": [
+                "--rootpersistentflag1", "value from cli",
+                "grp2cmd2",
+                "--grp2cmd2persistentflag1", "value from cli",
+                "sub221",
+                "--sub221flagnovar1", "value from cli",
+                "--config", "configs/cobravsviper.conf.yaml",
+            ],
+            "dlvFlags": ["--check-go-version=false"],
+            "env": {
+                "COBRAVSVIPER_ROOTPERSISTENTFLAG2": "value from envvars",
+                "COBRAVSVIPER_GRP2CMD2_GRP2CMD2PERSISTENTFLAG2": "value from envvars",
+                "COBRAVSVIPER_GRP2CMD2_SUB221_SUB221FLAGNOVAR2": "value from envvars",
             },
             "cwd": "${workspaceFolder}"
         }

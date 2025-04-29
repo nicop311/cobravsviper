@@ -29,6 +29,10 @@ cobravsviper:
       sub221flag2: "value from YAML configuration file sub221 2"
       sub221flag3: "value from YAML configuration file sub221 3"
       #sub221flag4: "value from YAML configuration file sub221 4" # we comment this to test if the viper takes the default value
+      sub221flagnovar1: "value from YAML configuration file sub221 1"
+      sub221flagnovar2: "value from YAML configuration file sub221 2"
+      sub221flagnovar3: "value from YAML configuration file sub221 3"
+      #sub221flagnovar4: "value from YAML configuration file sub221 4" # we comment this to test if the viper takes the default value
 
     zu-lu-sub221:
       zu-lu-sub221flag1: "value from YAML configuration file zu-lu-sub221 1"

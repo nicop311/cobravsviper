@@ -21,6 +21,11 @@ type ViperSub221 struct {
 	Sub221Flag2 string `mapstructure:"sub221flag2"`
 	Sub221Flag3 string `mapstructure:"sub221flag3"`
 	Sub221Flag4 string `mapstructure:"sub221flag4"`
+
+	Sub221flagnovar1 string `mapstructure:"sub221flagnovar1"`
+	Sub221flagnovar2 string `mapstructure:"sub221flagnovar2"`
+	Sub221flagnovar3 string `mapstructure:"sub221flagnovar3"`
+	Sub221flagnovar4 string `mapstructure:"sub221flagnovar4"`
 }
 
 var vprFlgsSub221 ViperSub221
@@ -68,6 +73,13 @@ to quickly create a Cobra application.`,
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag2: %s", vprFlgsRoot.RootPersistentFlag2)
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag3: %s", vprFlgsRoot.RootPersistentFlag3)
 		logrus.WithField("cobra-cmd", cmd.Use).Infof("rootpersistentflag4: %s", vprFlgsRoot.RootPersistentFlag4)
+
+		fmt.Println("")
+
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("vprFlgsSub221.sub221flagnovar1: %s", vprFlgsSub221.Sub221flagnovar1)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("vprFlgsSub221.sub221flagnovar2: %s", vprFlgsSub221.Sub221flagnovar2)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("vprFlgsSub221.sub221flagnovar3: %s", vprFlgsSub221.Sub221flagnovar3)
+		logrus.WithField("cobra-cmd", cmd.Use).Infof("vprFlgsSub221.sub221flagnovar4: %s", vprFlgsSub221.Sub221flagnovar4)
 	},
 }
 
@@ -82,4 +94,9 @@ func init() {
 	sub221Cmd.Flags().StringVar(&sub221Flag2, "sub221flag2", "value from default", "sub221 flag 2")
 	sub221Cmd.Flags().StringVar(&sub221Flag3, "sub221flag3", "value from default", "sub221 flag 3")
 	sub221Cmd.Flags().StringVar(&sub221Flag4, "sub221flag4", "value from default", "sub221 flag 4")
+
+	sub221Cmd.Flags().String("sub221flagnovar1", "value from default 0.0.0.1", "A Flag no *Var")
+	sub221Cmd.Flags().String("sub221flagnovar2", "value from default 0.0.0.2", "A Flag no *Var")
+	sub221Cmd.Flags().String("sub221flagnovar3", "value from default 0.0.0.3", "A Flag no *Var")
+	sub221Cmd.Flags().String("sub221flagnovar4", "value from default 0.0.0.4", "A Flag no *Var")
 }
